@@ -1,7 +1,7 @@
 # streaming-utilities
 
 #### TODO
-- [ ] Seitliches Scrollen bei langen Titeln
+- [x] Seitliches Scrollen bei langen Titeln
 - [x] Screen clearen und *dann* rendern
 - [x] Styling anpassen
 - [x] Progress-Bar anzeigen

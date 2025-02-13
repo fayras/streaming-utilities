@@ -7,7 +7,7 @@ from rich.live import Live
 from rich.text import Text
 from rich.cells import cell_len
 from now_playing.spotify_token import SpotifyToken
-from progress_bar import ProgressBar
+from now_playing.progress_bar import ProgressBar
 
 
 current_song_info = {}
@@ -29,6 +29,25 @@ def print_text(label, text, style):
     return f"{label}: [{style}]{rich.markup.escape(text)}[/{style}]\n"
 
 
+def scroll_text2(width, amount, label, text, style):
+    if cell_len(label) + cell_len(text) + cell_len(": ") <= width:
+        return print_text(label, text, style)
+
+    n = amount % (cell_len(label) + cell_len(text) + cell_len(": ") - width + 2 + 2)
+    ellipsis = "" if cell_len(label) + cell_len(text) + cell_len(": ") + 2 == width + n - 1 else "…"
+    available_width = width - cell_len(label) - cell_len(": ") - cell_len(ellipsis)
+
+    if n == 0:
+        text = text[n:available_width + n - 1].rstrip(" ") + ellipsis
+    elif n == cell_len(label) + cell_len(text) + cell_len(": ") - width + 2 + 2:
+        text = text[n-2:available_width + n - 3].rstrip(" ") + ellipsis
+    else:
+        text = text[n-1:available_width + n - 2].rstrip(" ") + ellipsis
+
+    # text = text[0+n:available_width+n-1].rstrip(" ") + ellipsis
+    return print_text(label, text, style)
+
+
 def scroll_text(width, amount, label, text, style):
     if cell_len(label) + cell_len(text) + cell_len(": ") <= width:
         return print_text(label, text, style)
@@ -43,8 +62,8 @@ def scroll_text(width, amount, label, text, style):
 def show_now_playing():
     token = SpotifyToken.get()
 
-    sys.stdout.write("\x1b[8;{rows};{cols}t".format(rows=4, cols=50))
-    console = rich.console.Console(style="on green")
+    # sys.stdout.write("\x1b[8;{rows};{cols}t".format(rows=4, cols=50))
+    console = rich.console.Console()
     console.set_window_title("♪♫♪♫♪")
     rich_text = rich.text.Text("")
 
@@ -65,7 +84,7 @@ def show_now_playing():
 
             title = scroll_text(width, elapsed_time, "Title", current_song_info["name"], "bold dark_red")
             artist = scroll_text(width, elapsed_time, "Artist", current_song_info["artists"], "bold dark_red")
-            rich_text = rich.text.Text.from_markup(title + artist + progress_bar.get())
+            rich_text = rich.text.Text.from_markup(title + artist + str(progress_bar))
 
             live.update(rich_text)
             live.refresh()
