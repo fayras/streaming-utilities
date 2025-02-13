@@ -7,6 +7,8 @@
 - [x] Progress-Bar anzeigen
 - [x] Automatisches Resizen vom Fenster (& automatisches Platzieren ?)
 - [ ] Verpixeltes Coverbild ?
+- [ ] Token Refreshen
+- [ ] Ggf. Scrollen reparieren (Das Warten am Ende)
 
 - [x] "Aktuelle Aufgabe" implementieren
 - [x] Icon für Titel raussuchen
