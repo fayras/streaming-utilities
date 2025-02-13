@@ -13,5 +13,5 @@ class ProgressBar:
         character_count = math.floor(current / total * width)
         self.progress_ascii = "".ljust(character_count, self.character).ljust(width, " ")
 
-    def get(self):
-        return f"\\[[bright_black]{self.progress_ascii}[/bright_black]]"
+    def __str__(self):
+        return f"[bright_black]\\[{self.progress_ascii}][/bright_black]"
