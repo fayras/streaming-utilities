@@ -11,13 +11,13 @@ class ScrollableText:
         self.width = width
         self.style = style
         self.offset = 0
-        self.title_length = None
-        self.text_length = None
-        self.seperator_length = None
-        self.update_lengths()
 
     def scroll(self, amount = 1):
-        total_length = self.title_length + self.text_length + self.seperator_length
+        title_len = cell_len(self.title)
+        text_len = cell_len(self.scrollable_text)
+        seperator_len = cell_len(self.seperator)
+
+        total_length = title_len + text_len + seperator_len
 
         # If text fits entirely, no need for scrolling
         if total_length <= self.width:
@@ -37,13 +37,8 @@ class ScrollableText:
             n = scroll_position - 1
 
         ellipsis = "" if total_length == self.width + n - 1 else "…"
-        available_width = self.width - self.title_length - self.seperator_length - cell_len(ellipsis)
+        available_width = self.width - title_len - seperator_len - cell_len(ellipsis)
         self.current_text = self.scrollable_text[0 + n:available_width + n - 1].rstrip(" ") + ellipsis
-
-    def update_lengths(self):
-        self.title_length = cell_len(self.title)
-        self.text_length = cell_len(self.scrollable_text)
-        self.seperator_length = cell_len(self.seperator)
 
     def update_text(self, text):
         if self.scrollable_text != text:
@@ -51,7 +46,6 @@ class ScrollableText:
 
         self.scrollable_text = text
         self.current_text = text
-        self.update_lengths()
 
     def update_width(self, width):
         self.width = width
@@ -59,7 +53,6 @@ class ScrollableText:
     def update(self, text, width):
         self.update_text(text)
         self.update_width(width)
-        self.update_lengths()
         return self
 
     def __str__(self):
