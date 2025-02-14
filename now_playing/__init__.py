@@ -1,4 +1,3 @@
-import sys
 import requests
 import rich
 import time
@@ -32,14 +31,13 @@ def show_now_playing():
     # sys.stdout.write("\x1b[8;{rows};{cols}t".format(rows=4, cols=50))
     console = rich.console.Console()
     console.set_window_title("♪♫♪♫♪")
-    rich_text = Text("")
 
     elapsed_time = 0
     get_current_song(token)
     title = ScrollableText("Title")
     artist = ScrollableText("Artist")
-    progress_bar = ProgressBar()
-    with Live(rich_text, auto_refresh=False, console=console) as live:
+    progress = ProgressBar()
+    with Live(Text(""), auto_refresh=False, console=console) as live:
         live.console.clear()
 
         rich.print("[green]❯[/green] [blue]./stream[/blue] [cyan]--now-playing[/cyan]")
@@ -51,8 +49,8 @@ def show_now_playing():
             width = live.console.size.width
             title.update(current_song_info["name"], width).scroll()
             artist.update(current_song_info["artists"], width).scroll()
-            progress_bar.update(live.console, current_song_info["progress"], current_song_info["duration"])
-            rich_text = Text.from_markup(f"{title}{artist}{progress_bar}")
+            progress.update(live.console, current_song_info["progress"], current_song_info["duration"])
+            rich_text = Text.from_markup(f"{title}{artist}{progress}")
 
             live.update(rich_text)
             live.refresh()
