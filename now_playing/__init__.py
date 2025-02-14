@@ -29,33 +29,28 @@ def print_text(label, text, style):
     return f"{label}: [{style}]{rich.markup.escape(text)}[/{style}]\n"
 
 
-def scroll_text2(width, amount, label, text, style):
-    if cell_len(label) + cell_len(text) + cell_len(": ") <= width:
-        return print_text(label, text, style)
-
-    n = amount % (cell_len(label) + cell_len(text) + cell_len(": ") - width + 2 + 2)
-    ellipsis = "" if cell_len(label) + cell_len(text) + cell_len(": ") + 2 == width + n - 1 else "…"
-    available_width = width - cell_len(label) - cell_len(": ") - cell_len(ellipsis)
-
-    if n == 0:
-        text = text[n:available_width + n - 1].rstrip(" ") + ellipsis
-    elif n == cell_len(label) + cell_len(text) + cell_len(": ") - width + 2 + 2:
-        text = text[n-2:available_width + n - 3].rstrip(" ") + ellipsis
-    else:
-        text = text[n-1:available_width + n - 2].rstrip(" ") + ellipsis
-
-    # text = text[0+n:available_width+n-1].rstrip(" ") + ellipsis
-    return print_text(label, text, style)
-
-
 def scroll_text(width, amount, label, text, style):
-    if cell_len(label) + cell_len(text) + cell_len(": ") <= width:
+    total_length = cell_len(label) + cell_len(text) + cell_len(": ")
+
+    # If text fits entirely, no need for scrolling
+    if total_length <= width:
         return print_text(label, text, style)
 
-    n = amount % (cell_len(label) + cell_len(text) + cell_len(": ") - width + 2)
-    ellipsis = "" if cell_len(label) + cell_len(text) + cell_len(": ") == width + n - 1 else "…"
+    # Calculate how many positions we need to scroll through
+    scroll_length = total_length - width + 2
+    scroll_position = amount % (scroll_length + 2)
+
+    # Add pause by repeating the first and last position
+    if scroll_position == 0:  # Pause at start
+        n = 0
+    elif scroll_position == scroll_length + 1:  # Pause at end
+        n = scroll_length - 1
+    else:  # Normal scrolling
+        n = scroll_position - 1
+
+    ellipsis = "" if total_length == width + n - 1 else "…"
     available_width = width - cell_len(label) - cell_len(": ") - cell_len(ellipsis)
-    text = text[0+n:available_width+n-1].rstrip(" ") + ellipsis
+    text = text[0 + n:available_width + n - 1].rstrip(" ") + ellipsis
     return print_text(label, text, style)
 
 
