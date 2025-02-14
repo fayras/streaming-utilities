@@ -6,6 +6,7 @@ import time
 from rich.live import Live
 from rich.text import Text
 from rich.cells import cell_len
+from rich.markup import escape as rich_escape
 from now_playing.spotify_token import SpotifyToken
 from now_playing.progress_bar import ProgressBar
 
@@ -26,7 +27,7 @@ def get_current_song(token):
 
 
 def print_text(label, text, style):
-    return f"{label}: [{style}]{rich.markup.escape(text)}[/{style}]\n"
+    return f"{label}: [{style}]{rich_escape(text)}[/{style}]\n"
 
 
 def scroll_text(width, amount, label, text, style):
@@ -60,7 +61,7 @@ def show_now_playing():
     # sys.stdout.write("\x1b[8;{rows};{cols}t".format(rows=4, cols=50))
     console = rich.console.Console()
     console.set_window_title("♪♫♪♫♪")
-    rich_text = rich.text.Text("")
+    rich_text = Text("")
 
     elapsed_time = 0
     get_current_song(token)
@@ -79,7 +80,7 @@ def show_now_playing():
 
             title = scroll_text(width, elapsed_time, "Title", current_song_info["name"], "bold dark_red")
             artist = scroll_text(width, elapsed_time, "Artist", current_song_info["artists"], "bold dark_red")
-            rich_text = rich.text.Text.from_markup(title + artist + str(progress_bar))
+            rich_text = Text.from_markup(title + artist + str(progress_bar))
 
             live.update(rich_text)
             live.refresh()
