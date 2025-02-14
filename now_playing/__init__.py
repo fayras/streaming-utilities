@@ -75,12 +75,11 @@ def show_now_playing():
             if elapsed_time % 5 == 0:
                 get_current_song(token)
 
-            progress_bar.update(live.console, current_song_info["progress"], current_song_info["duration"])
             width = live.console.size.width
-
             title = scroll_text(width, elapsed_time, "Title", current_song_info["name"], "bold dark_red")
             artist = scroll_text(width, elapsed_time, "Artist", current_song_info["artists"], "bold dark_red")
-            rich_text = Text.from_markup(title + artist + str(progress_bar))
+            progress_bar.update(live.console, current_song_info["progress"], current_song_info["duration"])
+            rich_text = Text.from_markup(f"{title}{artist}{progress_bar}")
 
             live.update(rich_text)
             live.refresh()
