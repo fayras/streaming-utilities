@@ -27,12 +27,13 @@ class SpotifyTokenHandler(BaseHTTPRequestHandler):
                 <h2>You can now close this window</h2>
             </body>
             </html>
-            """)
+            """
+        )
 
         access_code = parse_qs(urlparse(self.path).query)["code"]
         self.server.spotify_access_code = access_code
 
-    def log_message(self, format, *args):
+    def log_message(self, _, *args):
         return
 
 
