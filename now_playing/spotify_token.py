@@ -18,9 +18,15 @@ class SpotifyTokenHandler(BaseHTTPRequestHandler):
         access_code = parse_qs(urlparse(self.path).query)["code"]
         self.server.spotify_access_code = access_code
 
-
     def log_message(self, format, *args):
         return
+
+
+class SpotifyAuthServer(HTTPServer):
+    spotify_access_code = None
+
+    def __init__(self):
+        HTTPServer.__init__(self, ("localhost", 8989), SpotifyTokenHandler)
 
 
 class SpotifyToken:
@@ -29,7 +35,8 @@ class SpotifyToken:
         self.refresh_token = refresh_token
         self.token_type = token_type
         self.expires_in = expires_in
-        self.expires_at = datetime.datetime.now() + datetime.timedelta(seconds=expires_in)
+        self.expires_at = datetime.datetime.now() + datetime.timedelta(
+            seconds=expires_in)
 
     @staticmethod
     def get():
@@ -41,21 +48,21 @@ class SpotifyToken:
             "client_id": env_values["CLIENT_ID"],
         })
 
-        with HTTPServer(("localhost", 8989), SpotifyTokenHandler) as server:
+        with SpotifyAuthServer() as server:
             webbrowser.open("https://accounts.spotify.com/authorize?" + params)
             server.handle_request()
-
             access_code = server.spotify_access_code
 
         return SpotifyToken.request_token_with_code(access_code)
 
-
     @staticmethod
     def request_token_with_code(code):
         env_values = dotenv_values(".env")
-        id_secret_string = env_values["CLIENT_ID"] + ":" + env_values["CLIENT_SECRET"]
+        id_secret_string = env_values["CLIENT_ID"] + ":" + env_values[
+            "CLIENT_SECRET"]
         headers = {
-            "Authorization": "Basic " + base64.b64encode(id_secret_string.encode('ascii')).decode(),
+            "Authorization": "Basic " + base64.b64encode(
+                id_secret_string.encode('ascii')).decode(),
             "Content-Type": "application/x-www-form-urlencoded"
         }
         api_token_params = {
@@ -79,12 +86,8 @@ class SpotifyToken:
     def get_from_cache(self):
         pass
 
-
     def check_validity(self):
         pass
 
-
     def refresh(self):
         pass
-
-
