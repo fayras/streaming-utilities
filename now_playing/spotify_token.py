@@ -15,6 +15,20 @@ class SpotifyTokenHandler(BaseHTTPRequestHandler):
         self.send_header("Content-type", "text/html")
         self.end_headers()
 
+        self.wfile.write(
+            b"""
+            <html>
+            <head>
+                <title>Spotify Token</title>
+                <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+            </head>
+            <body style="text-align:center; padding-top: 5em; color: #999">
+                <h1>Spotify Code Authorization successful</h1>
+                <h2>You can now close this window</h2>
+            </body>
+            </html>
+            """)
+
         access_code = parse_qs(urlparse(self.path).query)["code"]
         self.server.spotify_access_code = access_code
 
