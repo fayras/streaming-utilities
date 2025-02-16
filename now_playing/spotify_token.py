@@ -70,11 +70,11 @@ class SpotifyToken:
             "redirect_uri": env_values["REDIRECT_URI"],
             "code": code
         }
-        api_token_response = requests.post(
-            "https://accounts.spotify.com/api/token",
-            data=api_token_params,
-            headers=headers
-        ).json()
+
+        code, api_token_response = SpotifyToken.get_token_from_api(
+            api_token_params,
+            headers
+        )
 
         return SpotifyToken(
             api_token_response["access_token"],
@@ -83,6 +83,16 @@ class SpotifyToken:
             api_token_response["expires_in"]
         )
 
+    @staticmethod
+    def get_token_from_api(api_token_params, headers):
+        response = requests.post(
+            "https://accounts.spotify.com/api/token",
+            data=api_token_params,
+            headers=headers
+        )
+
+        return response.status_code, response.json()
+
     def get_from_cache(self):
         pass
 
@@ -90,4 +100,25 @@ class SpotifyToken:
         pass
 
     def refresh(self):
-        pass
+        env_values = dotenv_values(".env")
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        api_token_params = {
+            "grant_type": "refresh_token",
+            "refresh_token": self.refresh_token,
+            "client_id": env_values["CLIENT_ID"]
+        }
+
+        code, api_token_response = SpotifyToken.get_token_from_api(
+            api_token_params,
+            headers
+        )
+
+        if code != 200:
+            raise Exception("Could not refresh token")
+
+        self.token = api_token_response["access_token"],
+        self.refresh_token = api_token_response["refresh_token"],
+        self.token_type = api_token_response["token_type"],
+        self.expires_in = api_token_response["expires_in"]
+        self.expires_at = datetime.datetime.now() + datetime.timedelta(
+            seconds=self.expires_in)

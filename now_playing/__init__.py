@@ -4,7 +4,7 @@ import time
 from rich.live import Live
 from rich.text import Text
 
-from now_playing.spotify_song import SpotifySong
+from now_playing.current_spotify_song import CurrentSpotifySong
 from now_playing.scrollable_text import ScrollableText
 from now_playing.spotify_token import SpotifyToken
 from now_playing.progress_bar import ProgressBar
@@ -15,7 +15,7 @@ def show_now_playing():
     console = rich.console.Console()
     console.set_window_title("♪♫♪♫♪")
 
-    current_song = SpotifySong()
+    current_song = CurrentSpotifySong()
     title = ScrollableText("Title")
     artist = ScrollableText("Artist")
     progress = ProgressBar()
