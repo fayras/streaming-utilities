@@ -19,10 +19,10 @@ class SpotifySong:
         self.token = SpotifyToken.get()
 
     def _fetch_from_api(self):
-        print("Fetching Spotify Song")
         response = requests.get(
-            "https://api.spotify.com/v1/me/player/currently-playing",
-            headers={"Authorization": f"{self.token.token_type} {self.token.token}"}
+            url="https://api.spotify.com/v1/me/player/currently-playing",
+            headers={
+                "Authorization": f"{self.token.token_type} {self.token.token}"}
         ).json()
 
         return Song(
