@@ -19,12 +19,15 @@ class SpotifyAPI:
         response = self.do_request(
             "https://api.spotify.com/v1/me/player/currently-playing")
 
-        return Song(
-            response["item"]["name"],
-            ", ".join([a["name"] for a in response["item"]["artists"]]),
-            response["progress_ms"],
-            response["item"]["duration_ms"]
-        )
+        if response["currently_playing_type"] == "track":
+            return Song(
+                response["item"]["name"],
+                ", ".join([a["name"] for a in response["item"]["artists"]]),
+                response["progress_ms"],
+                response["item"]["duration_ms"]
+            )
+
+        return None
 
     def get_headers(self):
         return {

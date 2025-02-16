@@ -22,16 +22,22 @@ def show_now_playing():
     with Live(Text(""), auto_refresh=False, console=console) as live:
         live.console.clear()
 
-        rich.print("[green]❯[/green] [blue]./stream[/blue] [cyan]--now-playing[/cyan]")
+        rich.print(
+            "[green]❯[/green] [blue]./stream[/blue] [cyan]--now-playing[/cyan]")
         while True:
             width = live.console.size.width
 
             current_song.update()
-            title.update(current_song.name, width).scroll()
-            artist.update(current_song.artists, width).scroll()
-            progress.update(live.console, current_song.progress, current_song.duration)
-            rich_text = Text.from_markup(f"{title}{artist}{progress}")
+            if not current_song.is_track():
+                live.update("Currently playing type is not supported.")
+            else:
+                title.update(current_song.name, width).scroll()
+                artist.update(current_song.artists, width).scroll()
+                progress.update(live.console, current_song.progress,
+                                current_song.duration)
+                rich_text = Text.from_markup(f"{title}{artist}{progress}")
 
-            live.update(rich_text)
+                live.update(rich_text)
+
             live.refresh()
             time.sleep(1)
