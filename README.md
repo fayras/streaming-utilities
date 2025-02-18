@@ -82,3 +82,9 @@ shortcuts:
 - `d`: Delete selected subtask
 - `a`: Add new subtask
 - `Ctrl+C`: Exit
+
+## TODOs
+
+- [ ] Now Playing: Refresh Token does not work?
+- [ ] Task Management: Highlight selected task
+- [ ] Task Management: Remove selection after some time (1s?)
