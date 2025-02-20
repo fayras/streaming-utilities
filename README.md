@@ -88,3 +88,7 @@ shortcuts:
 - [ ] Now Playing: Refresh Token does not work?
 - [ ] Task Management: Highlight selected task
 - [ ] Task Management: Remove selection after some time (1s?)
+- [ ] Twitch integration
+- [ ] Now Playing: Skip vote via Twitch command
+- [ ] Now Playing: Song request via Twitch command
+- [ ] Now Playing: Show when a song is being requested
