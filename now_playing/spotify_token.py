@@ -134,9 +134,13 @@ class SpotifyToken:
         if code != 200:
             raise Exception("Could not refresh token")
 
-        self.token = api_token_response["access_token"],
-        self.refresh_token = api_token_response["refresh_token"],
-        self.token_type = api_token_response["token_type"],
+        self.token = api_token_response["access_token"]
+        self.refresh_token = (
+            api_token_response["refresh_token"]
+            if "refresh_token" in api_token_response
+            else self.refresh_token
+        )
+        self.token_type = api_token_response["token_type"]
         self.expires_in = api_token_response["expires_in"]
         self.expires_at = datetime.datetime.now() + datetime.timedelta(
             seconds=self.expires_in)
