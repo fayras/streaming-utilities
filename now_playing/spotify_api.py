@@ -41,7 +41,7 @@ class SpotifyAPI:
         )
 
         if count > 2:
-            Exception("do_request called multiple times. " + response.text)
+            Exception("do_request called too many times. " + response.text)
 
         if response.status_code == 200:
             return response.json()

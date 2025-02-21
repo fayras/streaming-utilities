@@ -1,4 +1,4 @@
-from now_playing.SpotifyAPI import SpotifyAPI, Song
+from now_playing.spotify_api import SpotifyAPI, Song
 
 
 class CurrentSpotifySong:
