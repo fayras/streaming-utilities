@@ -31,7 +31,7 @@ async def new_task(session: PromptSession):
 
 
 async def new_subtask(session: PromptSession):
-    return await session.prompt_async("Neuer Aufgabe> ")
+    return await session.prompt_async("Neue Aufgabe> ")
 
 
 async def prompt_new(type: Type, console: Console, session: PromptSession):
