@@ -45,7 +45,8 @@ async def prompt_new(type: Type, console: Console, session: PromptSession):
 
     console.clear()
     console.show_cursor(False)
-    console.print("[green]❯[/green] [blue]./stream[/blue] [cyan]--current-task[/cyan]")
+    console.print(
+        "[green]❯[/green] [blue]./stream[/blue] [cyan]--current-task[/cyan]")
     return return_value
 
 
@@ -54,7 +55,8 @@ async def run_live_view_async() -> None:
     console.set_window_title("☒☐☒☐")
     console.show_cursor(False)
     console.clear()
-    console.print("[green]❯[/green] [blue]./stream[/blue] [cyan]--current-task[/cyan]")
+    console.print(
+        "[green]❯[/green] [blue]./stream[/blue] [cyan]--current-task[/cyan]")
 
     done = asyncio.Event()
     key_pressed = asyncio.Event()
@@ -113,16 +115,19 @@ async def run_live_view_async() -> None:
                         break
 
                     if new_title_requested.is_set():
-                        title, lines = await prompt_new(Type.TITLE, console, session)
+                        title, lines = await prompt_new(Type.TITLE, console,
+                                                        session)
                         new_title_requested.clear()
 
                     if new_subtasks_requested.is_set():
-                        subtask = await prompt_new(Type.SUBTASK, console, session)
+                        subtask = await prompt_new(Type.SUBTASK, console,
+                                                   session)
                         lines.append(subtask)
                         new_subtasks_requested.clear()
 
                     parsed_lines = map(
-                        lambda l: f"[x] {l[len(done_refix):]}" if l.startswith(done_refix) else f"[ ] {l}", lines)
+                        lambda l: f"[x] {l[len(done_refix):]}" if l.startswith(
+                            done_refix) else f"[ ] {l}", lines)
                     tasks = rich.markup.escape("\n".join(parsed_lines))
                     display_string = f"""[bold]{title}[/bold][default]\n{tasks}[/default]"""
                     live.update(display_string)
