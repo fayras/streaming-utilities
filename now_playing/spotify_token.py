@@ -71,15 +71,20 @@ class SpotifyToken:
         return SpotifyToken.request_token_with_code(access_code)
 
     @staticmethod
-    def request_token_with_code(code):
+    def get_headers():
         env_values = dotenv_values(".env")
         id_secret_string = env_values["CLIENT_ID"] + ":" + env_values[
             "CLIENT_SECRET"]
-        headers = {
+        return {
             "Authorization": "Basic " + base64.b64encode(
                 id_secret_string.encode('ascii')).decode(),
             "Content-Type": "application/x-www-form-urlencoded"
         }
+
+    @staticmethod
+    def request_token_with_code(code):
+        env_values = dotenv_values(".env")
+        headers = SpotifyToken.get_headers()
         api_token_params = {
             "grant_type": "authorization_code",
             "redirect_uri": env_values["REDIRECT_URI"],
@@ -115,12 +120,10 @@ class SpotifyToken:
         pass
 
     def refresh(self):
-        env_values = dotenv_values(".env")
-        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        headers = SpotifyToken.get_headers()
         api_token_params = {
             "grant_type": "refresh_token",
-            "refresh_token": self.refresh_token,
-            "client_id": env_values["CLIENT_ID"]
+            "refresh_token": self.refresh_token
         }
 
         code, api_token_response = SpotifyToken.get_token_from_api(
