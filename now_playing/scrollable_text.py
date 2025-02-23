@@ -1,9 +1,10 @@
-from rich.cells import cell_len
+from rich.cells import cell_len, set_cell_size
 from rich.markup import escape as rich_escape
 
 
 class ScrollableText:
-    def __init__(self, title, scrollable_text = "", width = 0, style = "bold dark_red") -> None:
+    def __init__(self, title, scrollable_text="", width=0,
+                 style="bold dark_red") -> None:
         self.title = title
         self.seperator = ": " if title != "" else ""
         self.scrollable_text = scrollable_text
@@ -12,7 +13,7 @@ class ScrollableText:
         self.style = style
         self.offset = 0
 
-    def scroll(self, amount = 1):
+    def scroll(self, amount=1):
         title_len = cell_len(self.title)
         text_len = cell_len(self.scrollable_text)
         seperator_len = cell_len(self.seperator)
@@ -37,8 +38,15 @@ class ScrollableText:
             n = scroll_position - 1
 
         ellipsis = "" if total_length == self.width + n - 1 else "…"
-        available_width = self.width - title_len - seperator_len - cell_len(ellipsis)
-        self.current_text = self.scrollable_text[0 + n:available_width + n - 1].rstrip(" ") + ellipsis
+        available_width = self.width - title_len - seperator_len - cell_len(
+            ellipsis)
+        # We need to find the offset in "characters" instead of cells, as
+        # one japanese char for example take 2 cells to display
+        char_offset = len(set_cell_size(self.scrollable_text, n))
+        offset_text = self.scrollable_text[
+                      char_offset:-1 if ellipsis == "…" else None]
+        self.current_text = set_cell_size(offset_text,
+                                          available_width) + ellipsis
 
     def update_text(self, text):
         if self.scrollable_text != text:
@@ -57,4 +65,3 @@ class ScrollableText:
 
     def __str__(self):
         return f"{self.title}: [{self.style}]{rich_escape(self.current_text)}[/{self.style}]\n"
-
