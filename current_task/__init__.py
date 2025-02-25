@@ -99,6 +99,9 @@ async def run_live_view_async() -> None:
             if key_press.key.isnumeric() and not key_press.key == 0:
                 marked_task = int(key_press.key)
 
+            if key_press.key == Keys.Escape or key_press.key == Keys.Backspace:
+                marked_task = None
+
             if key_press.key == 'x' and marked_task:
                 line = lines[marked_task - 1]
                 if line.startswith(done_refix):

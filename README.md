@@ -78,6 +78,7 @@ shortcuts:
 
 - `c`: Change main task
 - Numbers (1-9): Select a task
+- Backspace or 2xEsc: Cancel selection of task
 - `x`: Toggle selected subtask completion
 - `d`: Delete selected subtask
 - `a`: Add new subtask
