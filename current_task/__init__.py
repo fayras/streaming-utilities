@@ -50,6 +50,24 @@ async def prompt_new(type: Type, console: Console, session: PromptSession):
     return return_value
 
 
+marked_task = None
+done_refix = "x "
+
+
+def parse_task_line(index, line):
+    if line.startswith(done_refix):
+        line_string = f"[x] {line[len(done_refix):]}"
+    else:
+        line_string = f"[ ] {line}"
+
+    line_string = rich.markup.escape(line_string)
+
+    if marked_task == index + 1:
+        return f"[reverse]{line_string}[/reverse]"
+
+    return line_string
+
+
 async def run_live_view_async() -> None:
     console = Console(theme=Theme({"repr.number": "default"}))
     console.set_window_title("☒☐☒☐")
@@ -69,12 +87,10 @@ async def run_live_view_async() -> None:
         lines = [line.rstrip() for line in file]
 
     title = lines.pop(0)
-    done_refix = "x "
-    marked_task = None
 
     def keys_ready():
         nonlocal title
-        nonlocal marked_task
+        global marked_task
 
         for key_press in input.read_keys():
             if key_press.key == Keys.ControlC:
@@ -125,10 +141,10 @@ async def run_live_view_async() -> None:
                         lines.append(subtask)
                         new_subtasks_requested.clear()
 
-                    parsed_lines = map(
-                        lambda l: f"[x] {l[len(done_refix):]}" if l.startswith(
-                            done_refix) else f"[ ] {l}", lines)
-                    tasks = rich.markup.escape("\n".join(parsed_lines))
+                    parsed_lines = []  # map(parse_task_line, )
+                    for index, line in enumerate(lines):
+                        parsed_lines.append(parse_task_line(index, line))
+                    tasks = "\n".join(parsed_lines)
                     display_string = f"""[bold]{title}[/bold][default]\n{tasks}[/default]"""
                     live.update(display_string)
                     live.refresh()
