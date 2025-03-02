@@ -1,3 +1,7 @@
+import asyncio
+import threading
+
+import aiohttp
 import rich
 import time
 
@@ -10,6 +14,17 @@ from now_playing.spotify_token import SpotifyToken
 from now_playing.progress_bar import ProgressBar
 
 
+async def connect_to_websocket(song: CurrentSpotifySong):
+    async with aiohttp.ClientSession() as session:
+        async with session.ws_connect('http://localhost:8080/ws') as ws:
+            async for msg in ws:
+                if msg.type == aiohttp.WSMsgType.TEXT:
+                    if song is not None:
+                        song.set_name(msg.data)
+                elif msg.type == aiohttp.WSMsgType.ERROR:
+                    break
+
+
 def show_now_playing():
     # sys.stdout.write("\x1b[8;{rows};{cols}t".format(rows=4, cols=50))
     console = rich.console.Console()
@@ -19,6 +34,21 @@ def show_now_playing():
     title = ScrollableText("Title")
     artist = ScrollableText("Artist")
     progress = ProgressBar()
+
+    # This function will run in the thread
+    def run_in_thread():
+        loop = asyncio.new_event_loop()
+        # Set the loop as the current event loop for this thread
+        asyncio.set_event_loop(loop)
+        # Run the async function until it completes
+        loop.run_until_complete(connect_to_websocket(current_song))
+        # Clean up
+        loop.close()
+
+    t = threading.Thread(target=run_in_thread)
+    t.daemon = True
+    t.start()
+
     with Live(Text(""), auto_refresh=False, console=console) as live:
         live.console.clear()
 

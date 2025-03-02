@@ -22,6 +22,9 @@ class CurrentSpotifySong:
     def name(self):
         return self._cache.name
 
+    def set_name(self, name):
+        self._cache.name = name
+
     @property
     def artists(self):
         return self._cache.artists
