@@ -113,6 +113,7 @@ async def run_live_view_async() -> None:
 
             if key_press.key == 'd' and marked_task:
                 del lines[marked_task - 1]
+                marked_task = None
 
             if key_press.key == 'a' and not marked_task:
                 new_subtasks_requested.set()
