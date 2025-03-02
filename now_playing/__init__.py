@@ -1,4 +1,5 @@
 import asyncio
+import json
 import threading
 
 import aiohttp
@@ -19,8 +20,12 @@ async def connect_to_websocket(song: CurrentSpotifySong):
         async with session.ws_connect('http://localhost:8080/ws') as ws:
             async for msg in ws:
                 if msg.type == aiohttp.WSMsgType.TEXT:
-                    if song is not None:
-                        song.set_name(msg.data)
+                    data = json.loads(msg.data)
+                    if data["type"] == "CHAT_COMMAND":
+                        payload = data["payload"]
+                        if payload["command"] == "SONG_REQUEST":
+                            # TODO: SpotifyAPI queue song
+                            print("SpotifyAPI queue song " + payload["song_id"])
                 elif msg.type == aiohttp.WSMsgType.ERROR:
                     break
 

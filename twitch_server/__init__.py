@@ -35,10 +35,11 @@ def aiohttp_server():
         try:
             async for msg in ws:
                 if msg.type == WSMsgType.TEXT:
-                    if msg.data == 'close':
-                        await ws.close()
-                    else:
-                        await ws.send_str(msg.data + '/answer')
+                    pass
+                    # if msg.data == 'close':
+                    #     await ws.close()
+                    # else:
+                    #     await ws.send_str(msg.data + '/answer')
                 elif msg.type == WSMsgType.ERROR:
                     print('ws connection closed with exception %s' %
                           ws.exception())
@@ -51,7 +52,7 @@ def aiohttp_server():
     # Create a function to broadcast messages
     async def send(ws, message):
         try:
-            await ws.send_str(message)
+            await ws.send_json(message)
         except Exception as e:
             print(f"Error sending message to client: {e}")
 
@@ -82,7 +83,12 @@ def run_server(runner):
 # this will be called whenever a message in a channel was send by either the bot OR another user
 async def handle_message(runner, msg: ChatMessage):
     print(f'in {msg.room.name}, {msg.user.name} said: {msg.text}')
-    runner.broadcast("Text erhalten: " + msg.text)
+    if msg.text.startswith('!request '):
+        song_id = msg.text.replace('!request ', '')
+        runner.broadcast({
+            "type": "CHAT_COMMAND",
+            "payload": {"command": "SONG_REQUEST", "song_id": song_id}
+        })
 
 
 # this will be called when the event READY is triggered, which will be on bot start
