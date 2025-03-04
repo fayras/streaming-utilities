@@ -116,8 +116,8 @@ class SpotifyToken:
     def get_from_cache(self):
         pass
 
-    def check_validity(self):
-        pass
+    def is_valid(self):
+        return datetime.datetime.now() >= self.expires_at
 
     def refresh(self):
         headers = SpotifyToken.get_headers()
