@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import threading
 
 import aiohttp
@@ -25,9 +26,14 @@ async def connect_to_websocket(api: SpotifyAPI):
                     if data["type"] == "CHAT_COMMAND":
                         payload = data["payload"]
                         if payload["command"] == "SONG_REQUEST":
-                            api.queue_song(payload["song_id"])
+                            is_ok, response = api.queue_song(payload["song_id"])
+                            message = "Erfolgreich in Warteschlange aufgenommen." if is_ok else f"Etwas is fehlgeschlagen:\n {response["error"]["message"]}"
+                            os.system(
+                                f'notify-send "Spotify Request" "{message}"')
+
                             # TODO: Bei fehlgeschlagenem Request soll der Bot mit
                             # einer Nachricht antworten, dass die ID nicht stimmt
+                            # und ggf. bei falscher Benutzung (zB "!request ")
                 elif msg.type == aiohttp.WSMsgType.ERROR:
                     break
 
