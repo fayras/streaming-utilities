@@ -31,6 +31,14 @@ class SpotifyAPI:
 
         return None
 
+    def queue_song(self, id: str):
+        full_id = f"spotify:track:{id}"
+        api_url = "https://api.spotify.com/v1/me/player/queue"
+
+        response = self.do_request(api_url, requests.post, {"uri": full_id})
+        if not response.status_code == 200:
+            print("Could not queue song")
+
     def get_headers(self):
         return {"Authorization": f"{self.token.token_type} {self.token.token}"}
 

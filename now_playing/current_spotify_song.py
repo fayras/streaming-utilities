@@ -2,8 +2,8 @@ from now_playing.spotify_api import SpotifyAPI, Song
 
 
 class CurrentSpotifySong:
-    def __init__(self):
-        self.api = SpotifyAPI()
+    def __init__(self, api: SpotifyAPI):
+        self.api = api
         self._cache: Song or None = self.api.get_currently_playing()
         self._update_count = 0
         self._update_interval = 5

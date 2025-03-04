@@ -11,11 +11,12 @@ from rich.text import Text
 
 from now_playing.current_spotify_song import CurrentSpotifySong
 from now_playing.scrollable_text import ScrollableText
+from now_playing.spotify_api import SpotifyAPI
 from now_playing.spotify_token import SpotifyToken
 from now_playing.progress_bar import ProgressBar
 
 
-async def connect_to_websocket(song: CurrentSpotifySong):
+async def connect_to_websocket(api: SpotifyAPI):
     async with aiohttp.ClientSession() as session:
         async with session.ws_connect('http://localhost:8080/ws') as ws:
             async for msg in ws:
@@ -24,8 +25,9 @@ async def connect_to_websocket(song: CurrentSpotifySong):
                     if data["type"] == "CHAT_COMMAND":
                         payload = data["payload"]
                         if payload["command"] == "SONG_REQUEST":
-                            # TODO: SpotifyAPI queue song
-                            print("SpotifyAPI queue song " + payload["song_id"])
+                            api.queue_song(payload["song_id"])
+                            # TODO: Bei fehlgeschlagenem Request soll der Bot mit
+                            # einer Nachricht antworten, dass die ID nicht stimmt
                 elif msg.type == aiohttp.WSMsgType.ERROR:
                     break
 
@@ -35,7 +37,8 @@ def show_now_playing():
     console = rich.console.Console()
     console.set_window_title("♪♫♪♫♪")
 
-    current_song = CurrentSpotifySong()
+    api = SpotifyAPI()
+    current_song = CurrentSpotifySong(api)
     title = ScrollableText("Title")
     artist = ScrollableText("Artist")
     progress = ProgressBar()
@@ -46,7 +49,7 @@ def show_now_playing():
         # Set the loop as the current event loop for this thread
         asyncio.set_event_loop(loop)
         # Run the async function until it completes
-        loop.run_until_complete(connect_to_websocket(current_song))
+        loop.run_until_complete(connect_to_websocket(api))
         # Clean up
         loop.close()
 
