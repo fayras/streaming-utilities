@@ -10,6 +10,8 @@ import time
 from rich.live import Live
 from rich.text import Text
 
+from commands import parse_from_json
+from commands.request_command import RequestCommand
 from now_playing.current_spotify_song import CurrentSpotifySong
 from now_playing.scrollable_text import ScrollableText
 from now_playing.spotify_api import SpotifyAPI
@@ -17,23 +19,27 @@ from now_playing.spotify_token import SpotifyToken
 from now_playing.progress_bar import ProgressBar
 
 
+def parse_and_run_command(data: str, api: SpotifyAPI):
+    try:
+        command = parse_from_json(json.loads(data))
+        if isinstance(command, RequestCommand):
+            is_ok, error_message = command.execute(api)
+            message = "Erfolgreich in Warteschlange aufgenommen." if is_ok else f"Etwas is fehlgeschlagen:\n {error_message}"
+            os.system(f'notify-send "Spotify Request" "{message}"')
+    except:
+        print("Not valid JSON")
+
+
 async def connect_to_websocket(api: SpotifyAPI):
     async with aiohttp.ClientSession() as session:
         async with session.ws_connect('http://localhost:8080/ws') as ws:
             async for msg in ws:
                 if msg.type == aiohttp.WSMsgType.TEXT:
-                    data = json.loads(msg.data)
-                    if data["type"] == "CHAT_COMMAND":
-                        payload = data["payload"]
-                        if payload["command"] == "SONG_REQUEST":
-                            is_ok, response = api.queue_song(payload["song_id"])
-                            message = "Erfolgreich in Warteschlange aufgenommen." if is_ok else f"Etwas is fehlgeschlagen:\n {response["error"]["message"]}"
-                            os.system(
-                                f'notify-send "Spotify Request" "{message}"')
+                    parse_and_run_command(msg.data, api)
 
-                            # TODO: Bei fehlgeschlagenem Request soll der Bot mit
-                            # einer Nachricht antworten, dass die ID nicht stimmt
-                            # und ggf. bei falscher Benutzung (zB "!request ")
+                    # TODO: Bei fehlgeschlagenem Request soll der Bot mit
+                    # einer Nachricht antworten, dass die ID nicht stimmt
+                    # und ggf. bei falscher Benutzung (zB "!request ")
                 elif msg.type == aiohttp.WSMsgType.ERROR:
                     break
 

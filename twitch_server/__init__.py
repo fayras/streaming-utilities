@@ -10,6 +10,8 @@ import asyncio
 from aiohttp import web, WSMsgType
 import threading
 
+from commands import parse
+
 env_value = dotenv_values(".env")
 
 APP_ID = env_value["TWITCH_APP_ID"]
@@ -80,15 +82,12 @@ def run_server(runner):
     loop.run_forever()
 
 
-# this will be called whenever a message in a channel was send by either the bot OR another user
+# this will be called whenever a message in a channel was sent by either the bot OR another user
 async def handle_message(runner, msg: ChatMessage):
-    print(f'in {msg.room.name}, {msg.user.name} said: {msg.text}')
-    if msg.text.startswith('!request '):
-        song_id = msg.text.replace('!request ', '')
-        runner.broadcast({
-            "type": "CHAT_COMMAND",
-            "payload": {"command": "SONG_REQUEST", "song_id": song_id}
-        })
+    print(f'{msg.user.name}: {msg.text}')
+    command = parse(msg.text)
+    if command:
+        runner.broadcast(command.to_dict())
 
 
 # this will be called when the event READY is triggered, which will be on bot start
@@ -130,11 +129,11 @@ async def run(runner):
     # we are done with our setup, lets start this bot up!
     chat.start()
 
-    # lets run till we press enter in the console
+    # Let's run until we press "Enter" in the console
     try:
         input('press ENTER to stop\n')
     finally:
-        # now we can close the chat bot and the twitch api client
+        # now we can close the chatbot and the twitch api client
         chat.stop()
         await twitch.close()
 

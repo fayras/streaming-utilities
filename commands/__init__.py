@@ -2,8 +2,12 @@ import os
 import importlib
 import inspect
 
+from typing import Type
 
-def get_classes_dict():
+from commands.base_command import BaseCommand
+
+
+def get_classes_dict() -> dict[str, Type[BaseCommand]]:
     # Get the directory of the current module
     current_dir = os.path.dirname(__file__)
 
@@ -45,9 +49,29 @@ def get_classes_dict():
 # Create the dictionary of classes
 CLASSES = get_classes_dict()
 
+
+def parse(chat_str: str) -> BaseCommand | None:
+    if not chat_str.startswith("!"):
+        return None
+
+    chat_str_without_exclamation_mark = chat_str[1:]
+    tokens = chat_str_without_exclamation_mark.split()
+    if not tokens[0] in CLASSES:
+        return None
+
+    command = CLASSES[tokens[0]]()
+    # TODO: Ggf. Fehler werfen, wenn nicht geparsed werden kann und Nachricht
+    #       im Twitch Chat schreiben, mit einer "man page"
+    return command.parse(tokens[1:])
+
+
+def parse_from_json(json: dict) -> BaseCommand | None:
+    if "command" in json:
+        command = CLASSES[json["command"]]()
+        command.set_params_from_json(json["params"])
+
+        return command
+
+
 # Optional: expose the dictionary for import
-__all__ = ['CLASSES']
-
-
-def parse(command: str):
-    return None
+__all__ = ['CLASSES', 'parse', 'parse_from_json']
