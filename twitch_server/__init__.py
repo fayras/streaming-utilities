@@ -85,7 +85,7 @@ def run_server(runner):
 # this will be called whenever a message in a channel was sent by either the bot OR another user
 async def handle_message(runner, msg: ChatMessage):
     print(f'{msg.user.name}: {msg.text}')
-    command = parse(msg.text)
+    command = parse(msg)
     if command:
         runner.broadcast(command.to_dict())
 

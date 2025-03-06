@@ -1,11 +1,30 @@
-from enum import Enum
 from abc import ABC, abstractmethod
 from typing import Self, Any
+
+
+class ChatUser:
+    name: str
+    display_name: str
+
+    def __init__(self, name: str, display_name: str):
+        self.name = name
+        self.display_name = display_name
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "display_name": self.display_name,
+        }
+
+    @staticmethod
+    def from_dict(data: dict[str, Any]):
+        return ChatUser(data["name"], data["display_name"])
 
 
 class BaseCommand(ABC):
     # class Type(Enum):
     #     CHAT_COMMAND = "CHAT_COMMAND"
+    user: ChatUser = None
 
     @property
     @abstractmethod
@@ -22,7 +41,7 @@ class BaseCommand(ABC):
         pass
 
     @abstractmethod
-    def parse(self, params: list[str]) -> Self | None:
+    def parse(self, params: list[str], user: ChatUser) -> Self | None:
         pass
 
     @abstractmethod

@@ -20,7 +20,7 @@ class CurrentSpotifySong:
 
     @property
     def name(self):
-        return self._cache.name
+        return self._cache.name_with_requested_by
 
     def set_name(self, name):
         self._cache.name = name
