@@ -48,22 +48,19 @@ def get_classes_dict() -> dict[str, Type[BaseCommand]]:
     return classes_dict
 
 
-# Create the dictionary of classes
-CLASSES = get_classes_dict()
-
-
 def parse(chat_message: twitchAPI.chat.ChatMessage) -> BaseCommand | None:
     chat_str = chat_message.text
     chat_user = chat_message.user
     if not chat_str.startswith("!"):
         return None
 
+    classes = get_classes_dict()
     chat_str_without_exclamation_mark = chat_str[1:]
     tokens = chat_str_without_exclamation_mark.split()
-    if not tokens[0] in CLASSES:
+    if not tokens[0] in classes:
         return None
 
-    command = CLASSES[tokens[0]]()
+    command = classes[tokens[0]]()
     # TODO: Ggf. Fehler werfen, wenn nicht geparsed werden kann und Nachricht
     #       im Twitch Chat schreiben, mit einer "man page"
     return command.parse(tokens[1:], chat_user)
@@ -71,11 +68,8 @@ def parse(chat_message: twitchAPI.chat.ChatMessage) -> BaseCommand | None:
 
 def parse_from_json(json: dict) -> BaseCommand | None:
     if "command" in json:
-        command = CLASSES[json["command"]]()
+        classes = get_classes_dict()
+        command = classes[json["command"]]()
         command.set_params_from_json(json["params"])
 
         return command
-
-
-# Optional: expose the dictionary for import
-__all__ = ['CLASSES', 'parse', 'parse_from_json']

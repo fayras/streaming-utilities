@@ -12,6 +12,7 @@ import threading
 
 from commands import parse
 from commands.discord_command import DiscordCommand
+from commands.list_command import ListCommand
 
 env_value = dotenv_values(".env")
 
@@ -91,6 +92,9 @@ async def handle_message(runner, msg: ChatMessage):
         runner.broadcast(command.to_dict())
 
         if isinstance(command, DiscordCommand):
+            await command.execute(msg)
+
+        if isinstance(command, ListCommand):
             await command.execute(msg)
 
 
