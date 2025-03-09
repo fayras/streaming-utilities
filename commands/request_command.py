@@ -10,6 +10,7 @@ class RequestCommand(BaseCommand):
     name = "request"
     id: str = None
     user: ChatUser = None
+    user_cooldown = 60
 
     @override
     def execute(self, api: SpotifyAPI) -> (bool, str):

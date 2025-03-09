@@ -60,10 +60,19 @@ def parse(chat_message: twitchAPI.chat.ChatMessage) -> BaseCommand | None:
     if not tokens[0] in classes:
         return None
 
-    command = classes[tokens[0]]()
+    command = classes[tokens[0]]().parse(tokens[1:], chat_user)
     # TODO: Ggf. Fehler werfen, wenn nicht geparsed werden kann und Nachricht
     #       im Twitch Chat schreiben, mit einer "man page"
-    return command.parse(tokens[1:], chat_user)
+    if command is None:
+        return None
+
+    if command.check_cooldown(chat_user):
+        os.system(
+            f'notify-send "Command noch auf Cooldown" "@{chat_user.name} {chat_str}"'
+        )
+        return None
+
+    return command
 
 
 def parse_from_json(json: dict) -> BaseCommand | None:

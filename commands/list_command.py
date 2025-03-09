@@ -7,8 +7,10 @@ from commands.base_command import BaseCommand, ChatUser
 
 class ListCommand(BaseCommand):
     name = "commands"
+    global_cooldown = 120
 
-    async def execute(self, chat_message: twitchAPI.chat.ChatMessage) -> None:
+    async def execute(self,
+                      chat_message: twitchAPI.chat.ChatMessage) -> None:
         commands = get_classes_dict()
         commands.pop(self.name)
 
