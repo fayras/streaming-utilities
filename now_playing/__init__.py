@@ -23,8 +23,10 @@ def parse_and_run_command(data: str, api: SpotifyAPI):
     try:
         command = parse_from_json(json.loads(data))
         if isinstance(command, RequestCommand):
-            is_ok, error_message = command.execute(api)
-            message = "Erfolgreich in Warteschlange aufgenommen." if is_ok else f"Etwas is fehlgeschlagen:\n {error_message}"
+            is_ok, error = command.execute(api)
+            success_message = "Erfolgreich in Warteschlange aufgenommen."
+            error_message = f"Etwas is fehlgeschlagen:\n {error}"
+            message = success_message if is_ok else error_message
             os.system(f'notify-send "Spotify Request" "{message}"')
     except:
         print("Not valid JSON")
