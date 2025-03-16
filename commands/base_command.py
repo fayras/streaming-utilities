@@ -2,6 +2,8 @@ import datetime
 from abc import ABC, abstractmethod
 from typing import Self, Any
 
+import twitchAPI.chat
+
 
 class ChatUser:
     name: str
@@ -45,7 +47,8 @@ class BaseCommand(ABC):
         pass
 
     @abstractmethod
-    def parse(self, params: list[str], user: ChatUser) -> Self | None:
+    def parse(self, params: list[str],
+              user: twitchAPI.chat.ChatUser) -> Self | None:
         pass
 
     @abstractmethod
