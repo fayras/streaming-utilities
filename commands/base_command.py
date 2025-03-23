@@ -72,10 +72,10 @@ class BaseCommand(ABC):
         cooldown = None
 
         if cls.user_cooldown > -1:
-            cd_key = user.name
+            cd_key = f"{cls.name}_{user.name}"
             cooldown = cls.user_cooldown
         elif cls.global_cooldown > -1:
-            cd_key = "global"
+            cd_key = f"{cls.name}_global"
             cooldown = cls.global_cooldown
 
         if not cd_key is None:
