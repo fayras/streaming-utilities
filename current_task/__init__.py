@@ -21,11 +21,11 @@ async def new_task(session: PromptSession):
     title = await session.prompt_async("Neuer Titel> ")
     subtasks = []
     while True:
-        new_subtask = await session.prompt_async("Neue Aufgabe> ")
-        if new_subtask == "":
+        subtask = await session.prompt_async("Neue Aufgabe> ")
+        if subtask == "":
             break
 
-        subtasks.append(new_subtask)
+        subtasks.append(subtask)
 
     return title, subtasks
 
@@ -34,19 +34,22 @@ async def new_subtask(session: PromptSession):
     return await session.prompt_async("Neue Aufgabe> ")
 
 
-async def prompt_new(type: Type, console: Console, session: PromptSession):
+async def prompt_new(prompt_type: Type, console: Console,
+                     session: PromptSession):
     console.clear()
 
-    if type == Type.TITLE:
+    return_value = None
+    if prompt_type == Type.TITLE:
         return_value = await new_task(session)
 
-    if type == Type.SUBTASK:
+    if prompt_type == Type.SUBTASK:
         return_value = await new_subtask(session)
 
     console.clear()
     console.show_cursor(False)
     console.print(
         "[green]❯[/green] [blue]./stream[/blue] [cyan]--current-task[/cyan]")
+
     return return_value
 
 
@@ -80,7 +83,7 @@ async def run_live_view_async() -> None:
     key_pressed = asyncio.Event()
     new_title_requested = asyncio.Event()
     new_subtasks_requested = asyncio.Event()
-    input = create_input()
+    hotkey_input = create_input()
     session = PromptSession()
 
     with open(".task") as file:
@@ -92,7 +95,7 @@ async def run_live_view_async() -> None:
         nonlocal title
         global marked_task
 
-        for key_press in input.read_keys():
+        for key_press in hotkey_input.read_keys():
             if key_press.key == Keys.ControlC:
                 done.set()
 
@@ -121,13 +124,13 @@ async def run_live_view_async() -> None:
             if key_press.key == 'c' and not marked_task:
                 new_title_requested.set()
 
-            with open(".task", "w") as file:
-                file.write(title + "\n" + "\n".join(lines))
+            with open(".task", "w") as task_file:
+                task_file.write(title + "\n" + "\n".join(lines))
 
             key_pressed.set()
 
-    with input.raw_mode():
-        with input.attach(keys_ready):
+    with hotkey_input.raw_mode():
+        with hotkey_input.attach(keys_ready):
             with Live(Text(), auto_refresh=False, console=console) as live:
                 while True:
                     key_pressed.clear()
