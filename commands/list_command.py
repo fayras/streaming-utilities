@@ -1,16 +1,15 @@
 from typing import Self, Any
 
-import twitchAPI.chat
+from twitchAPI.chat import ChatMessage, ChatUser
 from commands import get_classes_dict
-from commands.base_command import BaseCommand, ChatUser
+from commands.base_command import BaseCommand
 
 
 class ListCommand(BaseCommand):
     name = "commands"
     global_cooldown = 120
 
-    async def execute(self,
-                      chat_message: twitchAPI.chat.ChatMessage) -> None:
+    async def execute(self, chat_message: ChatMessage) -> None:
         commands = get_classes_dict()
         commands.pop(self.name)
 

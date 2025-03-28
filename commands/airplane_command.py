@@ -1,8 +1,7 @@
 from typing import Self, Any
 
-import twitchAPI.chat
-
-from commands.base_command import BaseCommand, ChatUser
+from twitchAPI.chat import ChatMessage, ChatUser
+from commands.base_command import BaseCommand
 
 
 class AirplaneCommand(BaseCommand):
@@ -11,11 +10,10 @@ class AirplaneCommand(BaseCommand):
     user_color: str
     user_name: str
 
-    def execute(self, chat_message: twitchAPI.chat.ChatMessage) -> None:
+    def execute(self, chat_message: ChatMessage) -> None:
         pass
 
-    def parse(self, params: list[str],
-              user: twitchAPI.chat.ChatUser) -> Self | None:
+    def parse(self, params: list[str], user: ChatUser) -> Self | None:
         self.user_color = user.color
         self.user_name = user.display_name
         return self

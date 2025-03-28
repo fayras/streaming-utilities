@@ -1,6 +1,5 @@
 import requests
 
-from commands.base_command import ChatUser
 from now_playing.spotify_token import SpotifyToken
 
 
@@ -15,7 +14,7 @@ class Song:
     @property
     def name_with_requested_by(self):
         if self.requested_by:
-            return f"{self.name} (Wunsch von {self.requested_by.display_name})"
+            return f"{self.name} (Wunsch von {self.requested_by})"
 
         return self.name
 
@@ -24,7 +23,7 @@ class SpotifyAPI:
     token: SpotifyToken
     # TODO: Ggf sollte "song_requests" aufgeräumt werden. Zb wenn der gewünschte
     #       Song endet, sollte das id-user Paar entfernt werden.
-    song_requests: dict[str, ChatUser]
+    song_requests: dict[str, str]
 
     def __init__(self):
         self.token = SpotifyToken.get()
@@ -49,7 +48,7 @@ class SpotifyAPI:
 
         return None
 
-    def queue_song(self, id: str, user: ChatUser):
+    def queue_song(self, id: str, user: str):
         full_id = f"spotify:track:{id}"
         api_url = "https://api.spotify.com/v1/me/player/queue"
 

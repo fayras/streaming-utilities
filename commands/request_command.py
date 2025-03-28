@@ -1,28 +1,28 @@
 from typing import override, Self, Any
 
-import twitchAPI.chat
+from twitchAPI.chat import ChatUser
 
-from commands.base_command import BaseCommand, ChatUser
+from commands.base_command import BaseCommand
 from now_playing.spotify_api import SpotifyAPI
 
 
 class RequestCommand(BaseCommand):
     name = "request"
     id: str = None
-    user: ChatUser = None
+    user_name: str = None
     user_cooldown = 60
 
     @override
     def execute(self, api: SpotifyAPI) -> (bool, str):
-        is_ok, response = api.queue_song(self.id, self.user)
+        is_ok, response = api.queue_song(self.id, self.user_name)
         return is_ok, response
 
     @override
-    def parse(self, params: list[str], user: twitchAPI.chat.ChatUser) -> Self:
+    def parse(self, params: list[str], user: ChatUser) -> Self:
         if len(params) > 0:
             self.id = params[0]
 
-        self.user = ChatUser(user.name, user.display_name)
+        self.user_name = user.display_name
 
         return self
 
@@ -32,8 +32,8 @@ class RequestCommand(BaseCommand):
         if "song_id" in params:
             self.id = params["song_id"]
 
-        if "user" in params:
-            self.user = ChatUser.from_dict(params["user"])
+        if "user_name" in params:
+            self.user_name = params["user_name"]
 
         return self
 
@@ -41,5 +41,5 @@ class RequestCommand(BaseCommand):
     def get_params(self) -> dict[str, str]:
         return {
             "song_id": self.id,
-            "user": self.user.to_dict(),
+            "user_name": self.user_name,
         }

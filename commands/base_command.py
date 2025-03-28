@@ -2,32 +2,12 @@ import datetime
 from abc import ABC, abstractmethod
 from typing import Self, Any
 
-import twitchAPI.chat
-
-
-class ChatUser:
-    name: str
-    display_name: str
-
-    def __init__(self, name: str, display_name: str):
-        self.name = name
-        self.display_name = display_name
-
-    def to_dict(self):
-        return {
-            "name": self.name,
-            "display_name": self.display_name,
-        }
-
-    @staticmethod
-    def from_dict(data: dict[str, Any]):
-        return ChatUser(data["name"], data["display_name"])
+from twitchAPI.chat import ChatUser
 
 
 class BaseCommand(ABC):
     # class Type(Enum):
     #     CHAT_COMMAND = "CHAT_COMMAND"
-    user: ChatUser = None
     user_cooldown: int = -1
     global_cooldown: int = -1
     cooldown = {}
@@ -47,8 +27,7 @@ class BaseCommand(ABC):
         pass
 
     @abstractmethod
-    def parse(self, params: list[str],
-              user: twitchAPI.chat.ChatUser) -> Self | None:
+    def parse(self, params: list[str], user: ChatUser) -> Self | None:
         pass
 
     @abstractmethod
