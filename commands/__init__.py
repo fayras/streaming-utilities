@@ -48,7 +48,8 @@ def get_classes_dict() -> dict[str, Type[BaseCommand]]:
     return classes_dict
 
 
-def parse(chat_message: twitchAPI.chat.ChatMessage) -> BaseCommand | None:
+def parse(
+        chat_message: twitchAPI.chat.ChatMessage) -> BaseCommand | False | None:
     chat_str = chat_message.text
     chat_user = chat_message.user
     if not chat_str.startswith("!"):
@@ -70,7 +71,7 @@ def parse(chat_message: twitchAPI.chat.ChatMessage) -> BaseCommand | None:
         os.system(
             f'notify-send "Command noch auf Cooldown" "@{chat_user.name} {chat_str}"'
         )
-        return None
+        return False
 
     return command
 
