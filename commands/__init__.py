@@ -2,7 +2,7 @@ import os
 import importlib
 import inspect
 
-from typing import Type
+from typing import Type, Union
 
 import twitchAPI.chat
 
@@ -48,8 +48,8 @@ def get_classes_dict() -> dict[str, Type[BaseCommand]]:
     return classes_dict
 
 
-def parse(
-        chat_message: twitchAPI.chat.ChatMessage) -> BaseCommand | False | None:
+def parse(chat_message: twitchAPI.chat.ChatMessage) \
+        -> Union[BaseCommand, False, None]:
     chat_str = chat_message.text
     chat_user = chat_message.user
     if not chat_str.startswith("!"):
