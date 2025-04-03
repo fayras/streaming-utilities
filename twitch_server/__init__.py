@@ -96,6 +96,12 @@ async def handle_message(runner, msg: ChatMessage):
 
         if isinstance(command, ListCommand):
             await command.execute(msg)
+    elif command is None:
+        runner.broadcast({
+            "command": "chat_message",
+            "message": msg.text,
+            "username": msg.user.display_name,
+        })
 
 
 # this will be called when the event READY is triggered, which will be on bot start
