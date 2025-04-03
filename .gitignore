@@ -1,5 +1,7 @@
 # Custom ignored files
 .task
+*.db
+*.db-journal
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
