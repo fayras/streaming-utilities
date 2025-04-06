@@ -58,7 +58,7 @@ class SpotifyToken:
         env_values = dotenv_values(".env")
         params = urlencode({
             "response_type": "code",
-            "scope": "user-read-currently-playing user-modify-playback-state",
+            "scope": "user-read-currently-playing user-modify-playback-state playlist-modify-public",
             "redirect_uri": env_values["REDIRECT_URI"],
             "client_id": env_values["CLIENT_ID"],
         })

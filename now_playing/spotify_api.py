@@ -48,6 +48,14 @@ class SpotifyAPI:
 
         return None
 
+    def add_to_playlist(self, spotify_uri: str):
+        playlist_id = "2R8zS8Zp66sgKiEvsFaQI8"
+        api_url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+        response = self.do_request(api_url, requests.post,
+                                   {"uris": [spotify_uri]})
+
+        return response
+
     def queue_song(self, id: str, user: str):
         full_id = f"spotify:track:{id}"
         api_url = "https://api.spotify.com/v1/me/player/queue"
@@ -60,6 +68,7 @@ class SpotifyAPI:
         if not response.status_code == 200:
             return False, response.json()
 
+        self.add_to_playlist(full_id)
         self.song_requests[id] = user
         return True, "OK"
 
