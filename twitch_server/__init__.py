@@ -1,14 +1,12 @@
 from dotenv import dotenv_values
 from functools import partial
 
-import os.path
 import sqlite3
-import json
 
 from twitchAPI.twitch import Twitch
 from twitchAPI.oauth import UserAuthenticator
 from twitchAPI.type import AuthScope, ChatEvent
-from twitchAPI.chat import Chat, EventData, ChatMessage, ChatSub, ChatCommand
+from twitchAPI.chat import Chat, EventData, ChatMessage
 import asyncio
 
 from aiohttp import web, WSMsgType
@@ -17,6 +15,7 @@ import threading
 from commands import parse
 from commands.discord_command import DiscordCommand
 from commands.list_command import ListCommand
+from db import is_current_version, insert_command_in_db
 
 env_value = dotenv_values(".env")
 
@@ -93,15 +92,7 @@ async def handle_message(runner, msg: ChatMessage):
     print(f'{msg.user.name}: {msg.text}')
     command = parse(msg)
     if command:
-        with sqlite3.connect("database/bot.db") as con:
-            command_params = command.get_params() or {}
-            db_cursor = con.cursor()
-            db_cursor.execute(
-                "INSERT INTO executed_commands (command, parameters, user) VALUES (?, ?, ?)",
-                (command.name, json.dumps(command_params), msg.user.name)
-            )
-            con.commit()
-            db_cursor.close()
+        insert_command_in_db(command, msg.user.name)
         runner.broadcast(command.to_dict())
 
         if isinstance(command, DiscordCommand):
@@ -165,24 +156,11 @@ async def run(runner):
         await twitch.close()
 
 
-def setup_db():
-    db_path = "database/bot.db"
-    if not os.path.isfile(db_path):
-        connection = sqlite3.connect(db_path)
-        cursor = connection.cursor()
-        cursor.execute('''
-        CREATE TABLE executed_commands (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            command VARCHAR(255),
-            parameters TEXT,
-            user VARCHAR(255),
-            timestamp TIMESTAMP default CURRENT_TIMESTAMP
-        )
-        ''')
-
-
 def start_twitch_server():
-    setup_db()
+    con = sqlite3.connect("database/bot.db")
+    if not is_current_version(con):
+        raise Exception("Database version is out of date.")
+
     runner = aiohttp_server()
     t = threading.Thread(target=run_server, args=(runner,))
     t.daemon = True
