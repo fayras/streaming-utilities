@@ -88,6 +88,9 @@ def downgrade_db(db: Connection, to_version=0):
         if migration_version > current_version:
             continue
 
+        if migration_version == to_version:
+            break
+
         module = get_migration_module(migrations_path, migration_file)
         migration: DatabaseMigration = get_migration_from_module(module)
         migration.down(db)
