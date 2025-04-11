@@ -17,6 +17,7 @@ def main():
                         help="What is the current task right now.")
     parser.add_argument("--twitch-server", required=False, action="store_true",
                         help="Start a server which listens for Twitch Events.")
+
     args = parser.parse_args()
 
     if args.now_playing:

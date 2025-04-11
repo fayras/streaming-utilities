@@ -8,10 +8,11 @@ from importlib.util import spec_from_file_location, module_from_spec
 from sqlite3 import Connection
 
 from commands import BaseCommand
+from config import config
 from database.DatabaseMigration import DatabaseMigration
 
 
-def connect_db(path='database/bot.db'):
+def connect_db(path=config.database_path):
     connection = sqlite3.connect(
         path,
         detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES
@@ -126,7 +127,7 @@ def create_migration(name):
 
 
 def insert_command_in_db(command: BaseCommand, username: str):
-    with sqlite3.connect("database/bot.db") as connection:
+    with sqlite3.connect(config.database_path) as connection:
         command_params = command.get_params() or {}
         db_cursor = connection.cursor()
         db_cursor.execute(

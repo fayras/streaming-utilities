@@ -15,6 +15,7 @@ import threading
 from commands import parse
 from commands.discord_command import DiscordCommand
 from commands.list_command import ListCommand
+from config import config
 from db import is_current_version, insert_command_in_db
 
 env_value = dotenv_values(".env")
@@ -157,7 +158,7 @@ async def run(runner):
 
 
 def start_twitch_server():
-    con = sqlite3.connect("database/bot.db")
+    con = sqlite3.connect(config.database_path)
     if not is_current_version(con):
         raise Exception("Database version is out of date.")
 

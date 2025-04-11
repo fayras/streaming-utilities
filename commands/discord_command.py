@@ -1,8 +1,7 @@
 from typing import Self, Any
 
+from config import config
 from twitchAPI.chat import ChatMessage
-from dotenv import dotenv_values
-
 from commands.base_command import BaseCommand, ChatUser
 
 
@@ -11,8 +10,7 @@ class DiscordCommand(BaseCommand):
     global_cooldown = 30
 
     async def execute(self, chat_message: ChatMessage) -> None:
-        discord_link = dotenv_values(".env")["DISCORD_INVITE_LINK"]
-        await chat_message.reply(discord_link)
+        await chat_message.reply(config.discord_invite_link)
 
     def parse(self, params: list[str], user: ChatUser) -> Self | None:
         return self

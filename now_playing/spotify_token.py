@@ -3,10 +3,11 @@ import webbrowser
 import requests
 import base64
 
-from dotenv import dotenv_values
 from urllib.parse import urlencode
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
+
+from config import config
 
 
 class SpotifyTokenHandler(BaseHTTPRequestHandler):
@@ -55,12 +56,11 @@ class SpotifyToken:
 
     @staticmethod
     def get():
-        env_values = dotenv_values(".env")
         params = urlencode({
             "response_type": "code",
             "scope": "user-read-currently-playing user-modify-playback-state playlist-modify-public",
-            "redirect_uri": env_values["REDIRECT_URI"],
-            "client_id": env_values["CLIENT_ID"],
+            "redirect_uri": config.spotify_redirect_uri,
+            "client_id": config.spotify_client_id,
         })
 
         with SpotifyAuthServer() as server:
@@ -72,9 +72,7 @@ class SpotifyToken:
 
     @staticmethod
     def get_headers():
-        env_values = dotenv_values(".env")
-        id_secret_string = env_values["CLIENT_ID"] + ":" + env_values[
-            "CLIENT_SECRET"]
+        id_secret_string = f"{config.spotify_client_id}:{config.spotify_client_secret}"
         return {
             "Authorization": "Basic " + base64.b64encode(
                 id_secret_string.encode('ascii')).decode(),
@@ -83,11 +81,10 @@ class SpotifyToken:
 
     @staticmethod
     def request_token_with_code(code):
-        env_values = dotenv_values(".env")
         headers = SpotifyToken.get_headers()
         api_token_params = {
             "grant_type": "authorization_code",
-            "redirect_uri": env_values["REDIRECT_URI"],
+            "redirect_uri": config.sporetify_redirect_uri,
             "code": code
         }
 
