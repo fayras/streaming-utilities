@@ -1,6 +1,7 @@
 # Custom ignored files
-.task
-*.db
+.task*
+!.task.example
+*.db*
 *.db-journal
 
 # Byte-compiled / optimized / DLL files
