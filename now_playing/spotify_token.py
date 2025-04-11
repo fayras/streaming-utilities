@@ -84,7 +84,7 @@ class SpotifyToken:
         headers = SpotifyToken.get_headers()
         api_token_params = {
             "grant_type": "authorization_code",
-            "redirect_uri": config.sporetify_redirect_uri,
+            "redirect_uri": config.spotify_redirect_uri,
             "code": code
         }
 
