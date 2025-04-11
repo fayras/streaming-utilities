@@ -140,22 +140,27 @@ def insert_command_in_db(command: BaseCommand, username: str):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--up', action="store_true",
-                        help="Migrate DB to most current version.")
-    parser.add_argument('--down', type=int,
-                        nargs="?", const=0,
-                        choices=[0, *get_all_migration_versions()],
-                        help="Downgrade DB. You may specify a specific version.")
-    parser.add_argument('--make', type=str, help="Create a new migration.")
+    subparsers = parser.add_subparsers(dest='action', help='Action to execute')
+
+    up_parser = subparsers.add_parser('up',
+                                      help="Migrate DB to most current version.")
+    down_parser = subparsers.add_parser('down',
+                                        help="Downgrade DB. You may specify a specific version.")
+    down_parser.add_argument('-v', '--to-version', type=int, nargs="?", const=0,
+                             choices=[0, *get_all_migration_versions()])
+
+    make_parser = subparsers.add_parser('make',
+                                        help="Create a new migration.")
 
     args = parser.parse_args()
-    con = connect_db("database/test.db")
 
-    if args.up:
+    if args.action == 'up':
+        con = connect_db(config.database_path)
         migrate_db(con)
 
-    if not args.down is None:
-        downgrade_db(con, args.down)
+    if args.action == 'down':
+        con = connect_db(config.database_path)
+        downgrade_db(con, args.version)
 
-    if not args.make is None:
+    if args.action == 'make':
         create_migration(args.make)
