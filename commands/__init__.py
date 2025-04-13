@@ -36,7 +36,7 @@ def get_classes_dict() -> dict[str, Type[BaseCommand]]:
             # Iterate through all attributes in the module
             for name, obj in inspect.getmembers(module):
                 # Check if the attribute is a class (but not built-in)
-                if inspect.isclass(obj) and inspect.isbuiltin(obj):
+                if inspect.isclass(obj) and inspect.isbuiltin(obj) == False:
                     # Check if the class has a 'name' attribute
                     if hasattr(obj, 'name'):
                         classes_dict[obj.name] = obj
