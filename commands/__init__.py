@@ -83,7 +83,10 @@ def parse(chat_message: twitchAPI.chat.ChatMessage) \
 def parse_from_json(json: dict) -> BaseCommand | None:
     if "command" in json:
         classes = get_classes_dict()
-        command = classes[json["command"]]()
-        command.set_params_from_json(json["params"])
+        command = classes.get(json.get("command"))
+
+        if command:
+            command = command()
+            command.set_params_from_json(json.get("params") or {})
 
         return command
