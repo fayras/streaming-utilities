@@ -17,7 +17,7 @@ class ListCommand(BaseCommand):
         commands_str = "\n".join(commands)
         await chat_message.reply(commands_str)
 
-    def parse(self, params: list[str], user: ChatUser) -> Self | None:
+    def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
         return self
 
     def set_params_from_json(self, json: dict[str, Any]) -> Self | None:

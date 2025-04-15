@@ -12,7 +12,7 @@ class DiscordCommand(BaseCommand):
     async def execute(self, chat_message: ChatMessage) -> None:
         await chat_message.reply(config.discord_invite_link)
 
-    def parse(self, params: list[str], user: ChatUser) -> Self | None:
+    def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
         return self
 
     def set_params_from_json(self, json: dict[str, Any]) -> Self | None:

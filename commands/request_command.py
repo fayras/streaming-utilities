@@ -18,7 +18,7 @@ class RequestCommand(BaseCommand):
         return is_ok, response
 
     @override
-    def parse(self, params: list[str], user: ChatUser) -> Self:
+    def parse(self, _, params: list[str], user: ChatUser) -> Self:
         if len(params) > 0:
             self.id = params[0]
 

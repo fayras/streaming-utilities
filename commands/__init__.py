@@ -41,6 +41,10 @@ def get_classes_dict() -> dict[str, Type[BaseCommand]]:
                     if hasattr(obj, 'name'):
                         classes_dict[obj.name] = obj
 
+                    if hasattr(obj, 'aliases'):
+                        for alias in obj.aliases:
+                            classes_dict[alias] = obj
+
         except ImportError:
             # Handle any import errors gracefully
             print(f"Could not import module {module_name}")
@@ -61,7 +65,7 @@ def parse(chat_message: twitchAPI.chat.ChatMessage) \
     if not tokens[0] in classes:
         return None
 
-    command = classes[tokens[0]]().parse(tokens[1:], chat_user)
+    command = classes[tokens[0]]().parse(tokens[0], tokens[1:], chat_user)
     # TODO: Ggf. Fehler werfen, wenn nicht geparsed werden kann und Nachricht
     #       im Twitch Chat schreiben, mit einer "man page"
     if command is None:

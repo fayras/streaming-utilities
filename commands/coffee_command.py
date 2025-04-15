@@ -6,14 +6,18 @@ from commands.base_command import BaseCommand
 
 class CoffeeCommand(BaseCommand):
     name = "coffee"
+    aliases = ["tea", "covfefe"]
     user_cooldown = 30
     user_color: str
+    type = "coffee"
 
     def execute(self, chat_message: ChatMessage) -> None:
         pass
 
-    def parse(self, params: list[str], user: ChatUser) -> Self | None:
+    def parse(self, command: str, params: list[str],
+              user: ChatUser) -> Self | None:
         self.user_color = user.color
+        self.type = command
         return self
 
     def set_params_from_json(self, json: dict[str, Any]) -> Self | None:
@@ -21,5 +25,6 @@ class CoffeeCommand(BaseCommand):
 
     def get_params(self) -> dict[str, Any]:
         return {
-            "color": self.user_color
+            "color": self.user_color,
+            "type": self.type,
         }

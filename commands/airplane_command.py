@@ -1,3 +1,4 @@
+import random
 from typing import Self, Any
 
 from twitchAPI.chat import ChatMessage, ChatUser
@@ -6,6 +7,7 @@ from commands.base_command import BaseCommand
 
 class AirplaneCommand(BaseCommand):
     name = "airplane"
+    aliases = ["plane"]
     user_cooldown = 15
     user_color: str
     user_name: str
@@ -13,8 +15,9 @@ class AirplaneCommand(BaseCommand):
     def execute(self, chat_message: ChatMessage) -> None:
         pass
 
-    def parse(self, params: list[str], user: ChatUser) -> Self | None:
-        self.user_color = user.color
+    def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
+        self.user_color = user.color if not user.color is None else (
+                    "#%06x" % random.randint(0, 0xFFFFFF))
         self.user_name = user.display_name
         return self
 

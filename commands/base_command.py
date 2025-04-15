@@ -11,6 +11,7 @@ class BaseCommand(ABC):
     user_cooldown: int = -1
     global_cooldown: int = -1
     cooldown = {}
+    aliases = []
 
     @property
     @abstractmethod
@@ -27,7 +28,8 @@ class BaseCommand(ABC):
         pass
 
     @abstractmethod
-    def parse(self, params: list[str], user: ChatUser) -> Self | None:
+    def parse(self, command: str, params: list[str],
+              user: ChatUser) -> Self | None:
         pass
 
     @abstractmethod
