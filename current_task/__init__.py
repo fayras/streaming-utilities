@@ -118,6 +118,26 @@ async def run_live_view_async() -> None:
                 del lines[marked_task - 1]
                 marked_task = None
 
+            if marked_task and key_press.key == Keys.ControlUp:
+                if marked_task > 1:
+                    lines[marked_task - 1], lines[marked_task - 2] = lines[
+                        marked_task - 2], lines[marked_task - 1]
+                    marked_task -= 1
+
+            if marked_task and key_press.key == Keys.ControlDown:
+                if marked_task < len(lines):
+                    lines[marked_task - 1], lines[marked_task] = lines[
+                        marked_task], lines[marked_task - 1]
+                    marked_task += 1
+
+            if marked_task and key_press.key == Keys.Up:
+                if marked_task > 1:
+                    marked_task -= 1
+
+            if marked_task and key_press.key == Keys.Down:
+                if marked_task < len(lines):
+                    marked_task += 1
+
             if key_press.key == 'a' and not marked_task:
                 new_subtasks_requested.set()
 
