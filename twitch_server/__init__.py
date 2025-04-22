@@ -106,6 +106,7 @@ async def handle_message(runner, msg: ChatMessage):
             "command": "chat_message",
             "message": msg.text,
             "username": msg.user.display_name,
+            "user_color": msg.user.color
         })
 
 
