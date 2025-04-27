@@ -1,3 +1,4 @@
+import io
 import os.path
 from typing import Self, Any
 
@@ -20,12 +21,17 @@ class VotmCommand(BaseCommand):
 
         self.parser = argparse.ArgumentParser()
         subparsers = self.parser.add_subparsers(dest='action',
-                                                help='Action to execute')
-        create_parser = subparsers.add_parser("create", help="")
-        create_parser.add_argument("description")
-        create_parser.add_argument("-m", "--month", type=str)
-        status_parser = subparsers.add_parser("status", help="")
-        challenge_parse = subparsers.add_parser("challenge", help="")
+                                                help='Aktion, die ausgeführt werden soll.')
+        create_parser = subparsers.add_parser("create",
+                                              help="Erzeugt eine neue Challenge. (Nur Admins & Mods)")
+        create_parser.add_argument("description",
+                                   help="Die Beschreibung der Challenge.")
+        create_parser.add_argument("-m", "--month", type=str,
+                                   help="Der Monat, der Challenge im Format 'YYYY-MM'.")
+        status_parser = subparsers.add_parser("status",
+                                              help="Zeige den Status der aktuellen Challenge an.")
+        challenge_parse = subparsers.add_parser("challenge",
+                                                help="Zeige die aktuelle Challenge an.")
 
         self.action = None
         self.description = None
@@ -45,6 +51,14 @@ class VotmCommand(BaseCommand):
                 VotmCommand.script = script.read()
 
     async def execute(self, chat_message: ChatMessage) -> None:
+        if self.action is None:
+            # TODO: Help Nachricht schöner für den Twitch Chat formatieren
+            help_buffer = io.StringIO()
+            self.parser.print_help(help_buffer)
+            help_text = help_buffer.getvalue()
+            help_buffer.close()
+            await chat_message.reply(help_text)
+
         if self.action == "create":
             script_path = f"votm_scripts/{self.month}.py"
             full_path = os.path.join(
