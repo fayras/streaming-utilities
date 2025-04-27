@@ -1,7 +1,8 @@
 import os.path
+from typing import Self, Any
 
 import argparse
-from typing import Self, Any
+from datetime import datetime
 
 from twitchAPI.chat import ChatMessage, ChatUser
 from commands.base_command import BaseCommand
@@ -12,6 +13,7 @@ class VotmCommand(BaseCommand):
     name = "viewer_of_the_month"
     aliases = ["votm"]
     global_cooldown = 10
+    script = None
 
     def __init__(self):
         super().__init__()
@@ -30,9 +32,17 @@ class VotmCommand(BaseCommand):
         self.month = None
         self.challenge = None
 
-    # "!votm create DESCRIPTION"
-    # "!votm status"
-    # "!votm challenge"
+        if VotmCommand.script is None:
+            now = datetime.now()
+            current_month = f"{now.year}-{now.month:02}"
+            script_path = f"votm_scripts/{current_month}.py"
+            full_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "..",
+                script_path
+            )
+            with open(full_path, mode="r") as script:
+                VotmCommand.script = script.read()
 
     async def execute(self, chat_message: ChatMessage) -> None:
         if self.action == "create":
@@ -46,9 +56,9 @@ class VotmCommand(BaseCommand):
             if not os.path.exists(full_path):
                 with open(full_path, "w") as f:
                     content = (
-                        f"# Das Skript für die Challenge des Monats {self.month}.\n\n"
+                        f"# Das Skript für die Challenge des Monats {self.month}.\n#\n"
                         f"# Die Challenge des Monats ist:\n"
-                        f"# {self.description}"
+                        f"# {self.description}\n\n"
                     )
                     f.write(content)
 
@@ -61,6 +71,9 @@ class VotmCommand(BaseCommand):
                 f"Die Challenge des Monats ist: {self.challenge}"
             )
 
+        if self.action == "status":
+            exec(VotmCommand.script)
+
     def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
         args = self.parser.parse_args(params)
         self.action = args.action
@@ -70,7 +83,7 @@ class VotmCommand(BaseCommand):
             self.month = args.month if args.month else ""
 
         if args.action == "status":
-            print("votm status")
+            pass
 
         if args.action == "challenge":
             pass
