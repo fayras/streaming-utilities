@@ -1,3 +1,5 @@
+import os.path
+
 import argparse
 from typing import Self, Any
 
@@ -33,8 +35,24 @@ class VotmCommand(BaseCommand):
 
     async def execute(self, chat_message: ChatMessage) -> None:
         if self.action == "create":
+            script_path = f"votm_scripts/{self.month}.py"
+            full_path = os.path.join(
+                os.path.dirname(os.path.abspath(__file__)),
+                "..",
+                script_path
+            )
+
+            if not os.path.exists(full_path):
+                with open(full_path, "w") as f:
+                    content = (
+                        f"# Das Skript für die Challenge des Monats {self.month}.\n\n"
+                        f"# Die Challenge des Monats ist:\n"
+                        f"# {self.description}"
+                    )
+                    f.write(content)
+
             insert_votm_challenge(self.month, self.description,
-                                  "votm_scripts/test.py")
+                                  script_path)
 
     def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
         args = self.parser.parse_args(params)
@@ -42,9 +60,7 @@ class VotmCommand(BaseCommand):
 
         if args.action == "create" and user.name == "thefayras":
             self.description = args.description
-            self.month = (args.month
-                          .replace("\"", "")
-                          .replace("'", "")) if args.month else ""
+            self.month = args.month if args.month else ""
 
         if args.action == "status":
             print("votm status")
