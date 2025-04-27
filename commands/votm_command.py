@@ -5,7 +5,7 @@ from typing import Self, Any
 
 from twitchAPI.chat import ChatMessage, ChatUser
 from commands.base_command import BaseCommand
-from db import insert_votm_challenge
+from db import insert_votm_challenge, get_current_votm_challenge
 
 
 class VotmCommand(BaseCommand):
@@ -28,6 +28,7 @@ class VotmCommand(BaseCommand):
         self.action = None
         self.description = None
         self.month = None
+        self.challenge = None
 
     # "!votm create DESCRIPTION"
     # "!votm status"
@@ -54,6 +55,12 @@ class VotmCommand(BaseCommand):
             insert_votm_challenge(self.month, self.description,
                                   script_path)
 
+        if self.action == "challenge":
+            self.challenge = get_current_votm_challenge()
+            await chat_message.reply(
+                f"Die Challenge des Monats ist: {self.challenge}"
+            )
+
     def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
         args = self.parser.parse_args(params)
         self.action = args.action
@@ -66,7 +73,7 @@ class VotmCommand(BaseCommand):
             print("votm status")
 
         if args.action == "challenge":
-            print("votm challenge")
+            pass
 
         return self
 

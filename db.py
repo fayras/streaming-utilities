@@ -1,3 +1,4 @@
+import datetime
 import json
 import os
 import re
@@ -128,31 +129,49 @@ def create_migration(name):
         f.write(template)
 
 
+def query(query: str, parameters=None):
+    with sqlite3.connect(config.database_path) as connection:
+        db_cursor = connection.cursor()
+        result = db_cursor.execute(query, parameters).fetchall()
+        connection.commit()
+        db_cursor.close()
+
+    return result
+
+
+def get_current_votm_challenge():
+    now = datetime.datetime.now()
+    current_month = f"{now.year}-{now.month:02}"
+    result = query(
+        "SELECT description FROM viewer_of_the_month_challenges where month = ?",
+        (current_month,)
+    )
+
+    if len(result) == 0:
+        raise Exception("Challenge for current month missing.")
+
+    return result[0][0]
+
+
 def insert_votm_challenge(month: str, description: str, script_path: str):
     if re.match(r"\d{4}-\d{2}", month) is None:
         raise Exception("Month has the wrong format!")
 
-    with sqlite3.connect(config.database_path) as connection:
-        db_cursor = connection.cursor()
-        db_cursor.execute("""
+    query(
+        """
             INSERT INTO viewer_of_the_month_challenges (month, description, script_path)
             VALUES(?, ?, ?) 
-        """, (month, description, script_path))
-
-        connection.commit()
-        db_cursor.close()
+        """,
+        (month, description, script_path)
+    )
 
 
 def insert_command_in_db(command: BaseCommand, username: str):
-    with sqlite3.connect(config.database_path) as connection:
-        command_params = command.get_params() or {}
-        db_cursor = connection.cursor()
-        db_cursor.execute(
-            "INSERT INTO executed_commands (command, parameters, user) VALUES (?, ?, ?)",
-            (command.name, json.dumps(command_params), username)
-        )
-        connection.commit()
-        db_cursor.close()
+    command_params = command.get_params() or {}
+    query(
+        "INSERT INTO executed_commands (command, parameters, user) VALUES (?, ?, ?)",
+        (command.name, json.dumps(command_params), username)
+    )
 
 
 if __name__ == '__main__':
