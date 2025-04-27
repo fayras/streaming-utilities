@@ -1,4 +1,5 @@
 import os
+import shlex
 import importlib
 import inspect
 
@@ -64,7 +65,7 @@ def parse(chat_message: twitchAPI.chat.ChatMessage) \
 
     classes = get_classes_dict()
     chat_str_without_exclamation_mark = chat_str[1:]
-    tokens = chat_str_without_exclamation_mark.split()
+    tokens = shlex.split(chat_str_without_exclamation_mark)
     if not tokens[0] in classes:
         return None
 
