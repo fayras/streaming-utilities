@@ -4,6 +4,7 @@ from typing import Self, Any
 
 import argparse
 from datetime import datetime
+from enum import Enum
 
 from twitchAPI.chat import ChatMessage, ChatUser
 from commands.base_command import BaseCommand
@@ -11,6 +12,11 @@ from db import insert_votm_challenge, get_current_votm_challenge
 
 
 class VotmCommand(BaseCommand):
+    class Action(Enum):
+        CREATE = 1
+        STATUS = 2
+        CHALLENGE = 3
+
     name = "viewer_of_the_month"
     aliases = ["votm"]
     global_cooldown = 10
@@ -33,7 +39,7 @@ class VotmCommand(BaseCommand):
         challenge_parse = subparsers.add_parser("challenge",
                                                 help="Zeige die aktuelle Challenge an.")
 
-        self.action = None
+        self.action: VotmCommand.Action | None = None
         self.description = None
         self.month = None
         self.challenge = None
@@ -59,7 +65,7 @@ class VotmCommand(BaseCommand):
             help_buffer.close()
             await chat_message.reply(help_text)
 
-        if self.action == "create":
+        if self.action == VotmCommand.Action.CREATE:
             script_path = f"votm_scripts/{self.month}.py"
             full_path = os.path.join(
                 os.path.dirname(os.path.abspath(__file__)),
@@ -79,28 +85,28 @@ class VotmCommand(BaseCommand):
             insert_votm_challenge(self.month, self.description,
                                   script_path)
 
-        if self.action == "challenge":
+        if self.action == VotmCommand.Action.CHALLENGE:
             self.challenge = get_current_votm_challenge()
             await chat_message.reply(
                 f"Die Challenge des Monats ist: {self.challenge}"
             )
 
-        if self.action == "status":
+        if self.action == VotmCommand.Action.STATUS:
             exec(VotmCommand.script)
 
     def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
         args = self.parser.parse_args(params)
-        self.action = args.action
 
-        if args.action == "create" and user.name == "thefayras":
+        if user.name == "thefayras" and args.action == "create":
+            self.action = VotmCommand.Action.CREATE
             self.description = args.description
             self.month = args.month if args.month else ""
 
         if args.action == "status":
-            pass
+            self.action = VotmCommand.Action.STATUS
 
         if args.action == "challenge":
-            pass
+            self.action = VotmCommand.Action.CHALLENGE
 
         return self
 
