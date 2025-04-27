@@ -15,6 +15,7 @@ import threading
 from commands import parse
 from commands.discord_command import DiscordCommand
 from commands.list_command import ListCommand
+from commands.votm_command import VotmCommand
 from config import config
 from db import is_current_version, insert_command_in_db
 
@@ -101,6 +102,10 @@ async def handle_message(runner, msg: ChatMessage):
 
         if isinstance(command, ListCommand):
             await command.execute(msg)
+
+        if isinstance(command, VotmCommand):
+            await command.execute(msg)
+            
     elif command is None:
         runner.broadcast({
             "command": "chat_message",

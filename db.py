@@ -1,5 +1,7 @@
 import json
 import os
+import re
+
 import argparse
 import sqlite3
 import inspect
@@ -124,6 +126,21 @@ def create_migration(name):
     file_name = f"{max_version + 1:04}_{name}.py"
     with open(os.path.join(migrations_path, file_name), "w") as f:
         f.write(template)
+
+
+def insert_votm_challenge(month: str, description: str, script_path: str):
+    if re.match(r"\d{4}-\d{2}", month) is None:
+        raise Exception("Month has the wrong format!")
+
+    with sqlite3.connect(config.database_path) as connection:
+        db_cursor = connection.cursor()
+        db_cursor.execute("""
+            INSERT INTO viewer_of_the_month_challenges (month, description, script_path)
+            VALUES(?, ?, ?) 
+        """, (month, description, script_path))
+
+        connection.commit()
+        db_cursor.close()
 
 
 def insert_command_in_db(command: BaseCommand, username: str):
