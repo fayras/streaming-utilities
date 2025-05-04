@@ -2,7 +2,7 @@ from sqlite3 import Connection
 from database.DatabaseMigration import DatabaseMigration
 
 
-class InitDB(DatabaseMigration):
+class AddTableVOTMChallenge(DatabaseMigration):
     def up(self, connection: Connection) -> None:
         cursor = connection.cursor()
         cursor.execute('''
