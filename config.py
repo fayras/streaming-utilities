@@ -17,6 +17,9 @@ class Config:
         self.twitch_redirect_uri = env_value["TWITCH_REDIRECT_URI"]
         self.twitch_user_scopes = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT]
 
+        self.webserver_port = 8081
+        self.websocket_port = 8080
+
         self.discord_invite_link = env_value["DISCORD_INVITE_LINK"]
 
         self.database_path = env_value["DATABASE_PATH"]
