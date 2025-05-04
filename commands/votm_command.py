@@ -53,8 +53,10 @@ class VotmCommand(BaseCommand):
                 "..",
                 script_path
             )
-            with open(full_path, mode="r") as script:
-                VotmCommand.script = script.read()
+
+            if os.path.exists(full_path):
+                with open(full_path, mode="r") as script:
+                    VotmCommand.script = script.read()
 
     async def execute(self, chat_message: ChatMessage) -> None:
         if self.action is None:
@@ -92,9 +94,18 @@ class VotmCommand(BaseCommand):
             )
 
         if self.action == VotmCommand.Action.STATUS:
-            exec(VotmCommand.script)
+            script_locals = {}
+            exec(VotmCommand.script, None, script_locals)
+            return_value = script_locals["return_value"]
+            await chat_message.reply(
+                f"Aktueller Stand: {return_value}"
+            )
 
     def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
+        if len(params) == 0:
+            self.action = VotmCommand.Action.CHALLENGE
+            return self
+
         args = self.parser.parse_args(params)
 
         if user.name == "thefayras" and args.action == "create":
