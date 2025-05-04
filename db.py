@@ -212,7 +212,7 @@ if __name__ == '__main__':
 
     if args.action == 'down':
         con = connect_db(config.database_path)
-        downgrade_db(con, args.version)
+        downgrade_db(con, args.to_version)
 
     if args.action == 'make':
         create_migration(args.make)
