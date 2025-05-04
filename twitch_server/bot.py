@@ -4,9 +4,6 @@ from twitchAPI.twitch import Twitch
 from twitchAPI.type import ChatEvent
 from twitchAPI.chat import Chat, EventData, ChatMessage
 from commands import parse
-from commands.discord_command import DiscordCommand
-from commands.list_command import ListCommand
-from commands.votm_command import VotmCommand
 from config import config
 
 from db import insert_command_in_db
@@ -24,15 +21,7 @@ class Bot:
         if command:
             insert_command_in_db(command, msg.user)
             self.websocket.broadcast(command.to_dict())
-
-            if isinstance(command, DiscordCommand):
-                await command.execute(msg)
-
-            if isinstance(command, ListCommand):
-                await command.execute(msg)
-
-            if isinstance(command, VotmCommand):
-                await command.execute(msg)
+            await command.execute(msg)
 
         elif command is None:
             self.websocket.broadcast({

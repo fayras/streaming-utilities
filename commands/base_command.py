@@ -24,16 +24,12 @@ class BaseCommand(ABC):
     #     pass
 
     @abstractmethod
-    def execute(self, *args) -> None:
+    async def execute(self, *args) -> None:
         pass
 
     @abstractmethod
     def parse(self, command: str, params: list[str],
               user: ChatUser) -> Self | None:
-        pass
-
-    @abstractmethod
-    def set_params_from_json(self, json: dict[str, Any]) -> Self | None:
         pass
 
     @abstractmethod

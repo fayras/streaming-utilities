@@ -10,8 +10,6 @@ import time
 from rich.live import Live
 from rich.text import Text
 
-from commands import parse_from_json
-from commands.request_command import RequestCommand
 from now_playing.current_spotify_song import CurrentSpotifySong
 from now_playing.scrollable_text import ScrollableText
 from now_playing.spotify_api import SpotifyAPI
@@ -21,9 +19,14 @@ from now_playing.progress_bar import ProgressBar
 
 def parse_and_run_command(data: str, api: SpotifyAPI):
     try:
-        command = parse_from_json(json.loads(data))
-        if isinstance(command, RequestCommand):
-            is_ok, error = command.execute(api)
+        parsed_json = json.loads(data)
+        command = parsed_json.get("command")
+        if command == "request":
+            params = parsed_json.get("params")
+            song_id = params["song_id"]
+            user_name = params["user_name"]
+            is_ok, error = api.queue_song(song_id, user_name)
+            # is_ok, error = command.execute(api)
             success_message = "Erfolgreich in Warteschlange aufgenommen."
             error_message = f"Etwas is fehlgeschlagen:\n {error}"
             message = success_message if is_ok else error_message

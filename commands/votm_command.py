@@ -1,6 +1,6 @@
 import io
 import os.path
-from typing import Self, Any
+from typing import Self, Any, override
 
 import argparse
 from datetime import datetime
@@ -58,6 +58,7 @@ class VotmCommand(BaseCommand):
                 with open(full_path, mode="r") as script:
                     VotmCommand.script = script.read()
 
+    @override
     async def execute(self, chat_message: ChatMessage) -> None:
         if self.action is None:
             # TODO: Help Nachricht schöner für den Twitch Chat formatieren
@@ -101,6 +102,7 @@ class VotmCommand(BaseCommand):
                 f"Aktueller Stand: {return_value}"
             )
 
+    @override
     def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
         if len(params) == 0:
             self.action = VotmCommand.Action.CHALLENGE
@@ -121,8 +123,6 @@ class VotmCommand(BaseCommand):
 
         return self
 
-    def set_params_from_json(self, json: dict[str, Any]) -> Self | None:
-        return self
-
+    @override
     def get_params(self) -> dict[str, Any]:
         pass
