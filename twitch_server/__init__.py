@@ -94,7 +94,7 @@ async def handle_message(runner, msg: ChatMessage):
     print(f'{msg.user.name}: {msg.text}')
     command = parse(msg)
     if command:
-        insert_command_in_db(command, msg.user.name)
+        insert_command_in_db(command, msg.user)
         runner.broadcast(command.to_dict())
 
         if isinstance(command, DiscordCommand):
@@ -105,7 +105,7 @@ async def handle_message(runner, msg: ChatMessage):
 
         if isinstance(command, VotmCommand):
             await command.execute(msg)
-            
+
     elif command is None:
         runner.broadcast({
             "command": "chat_message",

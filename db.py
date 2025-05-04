@@ -10,6 +10,8 @@ import inspect
 from importlib.util import spec_from_file_location, module_from_spec
 from sqlite3 import Connection
 
+import twitchAPI.chat
+
 from commands import BaseCommand
 from config import config
 from database.DatabaseMigration import DatabaseMigration
@@ -166,11 +168,25 @@ def insert_votm_challenge(month: str, description: str, script_path: str):
     )
 
 
-def insert_command_in_db(command: BaseCommand, username: str):
+def get_user_id(username: str, display_name: str):
+    user_ids = query("SELECT id FROM users WHERE username = ?", (username,))
+
+    if len(user_ids) > 0:
+        return user_ids[0][0]
+
+    query("INSERT INTO users (username, display_name) VALUES(?, ?)",
+          (username, display_name))
+    user_ids = query("SELECT id FROM users WHERE username = ?", (username,))
+    return user_ids[0][0]
+
+
+def insert_command_in_db(command: BaseCommand, user: twitchAPI.chat.ChatUser):
     command_params = command.get_params() or {}
+    user_id = get_user_id(user.name, user.display_name)
+
     query(
-        "INSERT INTO executed_commands (command, parameters, user) VALUES (?, ?, ?)",
-        (command.name, json.dumps(command_params), username)
+        "INSERT INTO executed_commands (command, parameters, user_id, user) VALUES (?, ?, ?, ?)",
+        (command.name, json.dumps(command_params), user_id, user.name)
     )
 
 
