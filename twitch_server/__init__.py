@@ -1,5 +1,7 @@
 from dotenv import dotenv_values
 from functools import partial
+from fastapi import FastAPI
+import uvicorn
 
 import sqlite3
 
@@ -10,7 +12,6 @@ from twitchAPI.chat import Chat, EventData, ChatMessage
 import asyncio
 
 from aiohttp import web, WSMsgType
-import threading
 
 from commands import parse
 from commands.discord_command import DiscordCommand
@@ -80,13 +81,11 @@ def aiohttp_server():
     return runner
 
 
-def run_server(runner):
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(runner.setup())
-    site = web.TCPSite(runner, 'localhost', 8080)
-    loop.run_until_complete(site.start())
-    loop.run_forever()
+async def run_websocket_server(runner, port=8080):
+    print(f"Starting Websocket server on port {port}.")
+    await runner.setup()
+    site = web.TCPSite(runner, 'localhost', port)
+    await site.start()
 
 
 # this will be called whenever a message in a channel was sent by either the bot OR another user
@@ -125,15 +124,7 @@ async def bot_ready(ready_event: EventData):
 
 
 # this is where we set up the bot
-async def run(runner):
-    # set up twitch api instance and add user authentication with some scopes
-    twitch = await Twitch(APP_ID, APP_SECRET)
-    auth = UserAuthenticator(twitch, USER_SCOPE,
-                             url="http://localhost:8990",
-                             port=8990)
-    token, refresh_token = await auth.authenticate()
-    await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
-
+async def run_bot(twitch: Twitch, runner):
     # create chat instance
     chat = await Chat(twitch)
 
@@ -156,11 +147,53 @@ async def run(runner):
 
     # Let's run until we press "Enter" in the console
     try:
-        input('press ENTER to stop\n')
+        while True:
+            await asyncio.sleep(1)
     finally:
         # now we can close the chatbot and the twitch api client
         chat.stop()
         await twitch.close()
+
+
+def setup_web_server(twitch: Twitch):
+    app = FastAPI()
+
+    @app.get("/")
+    async def root():
+        return {"message": "Hello World"}
+
+    @app.get("/users")
+    async def users():
+        return twitch.get_users()
+
+    return app
+
+
+async def run_web_server(app: FastAPI, port=8081):
+    print(f"Starting web server on port {port}.")
+    server_config = uvicorn.Config(app, port=port, log_level="warning")
+    server = uvicorn.Server(server_config)
+    await server.serve()
+
+
+async def get_twitch_api():
+    # set up twitch api instance and add user authentication with some scopes
+    twitch = await Twitch(APP_ID, APP_SECRET)
+    auth = UserAuthenticator(twitch, USER_SCOPE,
+                             url="http://localhost:8990",
+                             port=8990)
+    token, refresh_token = await auth.authenticate()
+    await twitch.set_user_authentication(token, USER_SCOPE, refresh_token)
+
+    return twitch
+
+
+async def run_tasks(twitch, runner, app):
+    await asyncio.gather(
+        run_websocket_server(runner),
+        run_web_server(app),
+        run_bot(twitch, runner)
+    )
 
 
 def start_twitch_server():
@@ -168,8 +201,12 @@ def start_twitch_server():
     if not is_current_version(con):
         raise Exception("Database version is out of date.")
 
+    loop = asyncio.get_event_loop()
+    twitch = loop.run_until_complete(get_twitch_api())
     runner = aiohttp_server()
-    t = threading.Thread(target=run_server, args=(runner,))
-    t.daemon = True
-    t.start()
-    asyncio.run(run(runner))
+    app = setup_web_server(twitch)
+    
+    try:
+        asyncio.run(run_tasks(twitch, runner, app))
+    except KeyboardInterrupt:
+        pass
