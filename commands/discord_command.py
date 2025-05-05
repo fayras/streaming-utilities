@@ -7,6 +7,7 @@ from commands.base_command import BaseCommand, ChatUser
 
 class DiscordCommand(BaseCommand):
     name = "discord"
+    aliases = ["dc"]
     global_cooldown = 30
 
     @override
