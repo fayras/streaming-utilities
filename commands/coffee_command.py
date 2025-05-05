@@ -8,8 +8,11 @@ class CoffeeCommand(BaseCommand):
     name = "coffee"
     aliases = ["tea", "covfefe"]
     user_cooldown = 30
-    user_color: str
-    type = "coffee"
+
+    def __init__(self):
+        super().__init__()
+        self.user_color = None
+        self.type = "coffee"
 
     @override
     async def execute(self, chat_message: ChatMessage) -> None:

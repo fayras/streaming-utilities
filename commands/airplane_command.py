@@ -9,8 +9,11 @@ class AirplaneCommand(BaseCommand):
     name = "airplane"
     aliases = ["plane"]
     user_cooldown = 15
-    user_color: str
-    user_name: str
+
+    def __init__(self):
+        super().__init__()
+        self.user_color = None
+        self.user_name = None
 
     @override
     async def execute(self, chat_message: ChatMessage) -> None:
