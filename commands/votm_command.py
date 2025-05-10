@@ -8,6 +8,7 @@ from enum import Enum
 
 from twitchAPI.chat import ChatMessage, ChatUser
 from commands.base_command import BaseCommand
+from commands.middleware.global_cooldown import GlobalCooldown
 from db import insert_votm_challenge, get_current_votm_challenge
 
 
@@ -19,11 +20,16 @@ class VotmCommand(BaseCommand):
 
     name = "viewer_of_the_month"
     aliases = ["votm"]
-    global_cooldown = 10
+    middleware = [GlobalCooldown(10)]
     script = None
 
-    def __init__(self):
-        super().__init__()
+    def __init__(
+            self,
+            command_string: str,
+            params: list[str],
+            chat_message: ChatMessage
+    ):
+        super().__init__(command_string, params, chat_message)
 
         self.parser = argparse.ArgumentParser()
         subparsers = self.parser.add_subparsers(dest='action',
@@ -59,14 +65,14 @@ class VotmCommand(BaseCommand):
                     VotmCommand.script = script.read()
 
     @override
-    async def execute(self, chat_message: ChatMessage) -> None:
+    async def execute(self) -> None:
         if self.action is None:
             # TODO: Help Nachricht schöner für den Twitch Chat formatieren
             help_buffer = io.StringIO()
             self.parser.print_help(help_buffer)
             help_text = help_buffer.getvalue()
             help_buffer.close()
-            await chat_message.reply(help_text)
+            await self.chat_message.reply(help_text)
 
         if self.action == VotmCommand.Action.CREATE:
             script_path = f"votm_scripts/{self.month}.py"
@@ -90,7 +96,7 @@ class VotmCommand(BaseCommand):
 
         if self.action == VotmCommand.Action.CHALLENGE:
             self.challenge = get_current_votm_challenge()
-            await chat_message.reply(
+            await self.chat_message.reply(
                 f"Die Challenge des Monats ist: {self.challenge}"
             )
 
@@ -98,18 +104,19 @@ class VotmCommand(BaseCommand):
             script_locals = {}
             exec(VotmCommand.script, None, script_locals)
             return_value = script_locals["return_value"]
-            await chat_message.reply(
+            await self.chat_message.reply(
                 f"Aktueller Stand: {return_value}"
             )
 
     @override
-    def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
+    def parse(self, _, params: list[str]) -> Self | None:
         if len(params) == 0:
             self.action = VotmCommand.Action.CHALLENGE
             return self
 
         args = self.parser.parse_args(params)
 
+        user = self.chat_message.user
         if user.name == "thefayras" and args.action == "create":
             self.action = VotmCommand.Action.CREATE
             self.description = args.description

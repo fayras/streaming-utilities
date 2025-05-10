@@ -1,27 +1,28 @@
 from typing import Self, Any, override
 
-from twitchAPI.chat import ChatUser, ChatMessage
+from twitchAPI.chat import ChatMessage
 from commands.base_command import BaseCommand
+from commands.middleware.user_cooldown import UserCooldown
 
 
 class CoffeeCommand(BaseCommand):
     name = "coffee"
     aliases = ["tea", "covfefe"]
-    user_cooldown = 30
+    middleware = [UserCooldown(30)]
 
-    def __init__(self):
-        super().__init__()
+    def __init__(
+            self,
+            command_string: str,
+            params: list[str],
+            chat_message: ChatMessage
+    ):
+        super().__init__(command_string, params, chat_message)
         self.user_color = None
         self.type = "coffee"
 
     @override
-    async def execute(self, chat_message: ChatMessage) -> None:
-        pass
-
-    @override
-    def parse(self, command: str, params: list[str],
-              user: ChatUser) -> Self | None:
-        self.user_color = user.color
+    def parse(self, command: str, params: list[str]) -> Self | None:
+        self.user_color = self.chat_message.user.color
         self.type = command
         return self
 
@@ -31,3 +32,7 @@ class CoffeeCommand(BaseCommand):
             "color": self.user_color,
             "type": self.type,
         }
+
+    @override
+    async def execute(self) -> None:
+        pass

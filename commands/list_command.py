@@ -1,25 +1,25 @@
 from typing import Self, Any, override
 
-from twitchAPI.chat import ChatMessage, ChatUser
-from commands import get_classes_dict
+from commands import get_all_commands
 from commands.base_command import BaseCommand
+from commands.middleware.global_cooldown import GlobalCooldown
 
 
 class ListCommand(BaseCommand):
     name = "commands"
-    global_cooldown = 120
+    middleware = [GlobalCooldown(120)]
 
     @override
-    async def execute(self, chat_message: ChatMessage) -> None:
-        commands = get_classes_dict()
+    async def execute(self) -> None:
+        commands = get_all_commands()
         commands.pop(self.name)
 
         commands = map(lambda c: f"!{c}", commands)
         commands_str = "\n".join(commands)
-        await chat_message.reply(commands_str)
+        await self.chat_message.reply(commands_str)
 
     @override
-    def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
+    def parse(self, _, params: list[str]) -> Self | None:
         return self
 
     @override

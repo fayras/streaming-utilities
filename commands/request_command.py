@@ -1,26 +1,31 @@
-from typing import override, Self, Any
+from typing import override, Self
 
-from twitchAPI.chat import ChatUser, ChatMessage
+from twitchAPI.chat import ChatMessage
 
 from commands.base_command import BaseCommand
+from commands.middleware.user_cooldown import UserCooldown
 
 
 class RequestCommand(BaseCommand):
     name = "request"
-    id: str = None
-    user_name: str = None
-    user_cooldown = 60
+    middleware = [UserCooldown(30)]
+
+    def __init__(self, command_string: str, params: list[str],
+                 chat_message: ChatMessage):
+        super().__init__(command_string, params, chat_message)
+        self.id = None
+        self.user_name = None
 
     @override
-    async def execute(self, chat_message: ChatMessage) -> None:
+    async def execute(self) -> None:
         pass
 
     @override
-    def parse(self, _, params: list[str], user: ChatUser) -> Self:
+    def parse(self, _, params: list[str]) -> Self:
         if len(params) > 0:
             self.id = params[0]
 
-        self.user_name = user.display_name
+        self.user_name = self.chat_message.user.display_name
 
         return self
 

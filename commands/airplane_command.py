@@ -1,29 +1,35 @@
 import random
 from typing import Self, Any, override
 
-from twitchAPI.chat import ChatMessage, ChatUser
+from twitchAPI.chat import ChatMessage
 from commands.base_command import BaseCommand
+from commands.middleware.user_cooldown import UserCooldown
 
 
 class AirplaneCommand(BaseCommand):
     name = "airplane"
     aliases = ["plane"]
-    user_cooldown = 15
+    middleware = [UserCooldown(15)]
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self,
+                 command_string: str,
+                 params: list[str],
+                 chat_message: ChatMessage
+                 ):
+        super().__init__(command_string, params, chat_message)
         self.user_color = None
         self.user_name = None
 
     @override
-    async def execute(self, chat_message: ChatMessage) -> None:
-        pass
-
-    @override
-    def parse(self, _, params: list[str], user: ChatUser) -> Self | None:
-        self.user_color = user.color if not user.color is None else (
-                "#%06x" % random.randint(0, 0xFFFFFF))
+    def parse(self, _, params: list[str]) -> Self | None:
+        user = self.chat_message.user
         self.user_name = user.display_name
+
+        if not user.color is None:
+            self.user_color = user.color
+        else:
+            self.user_color = "#%06x" % random.randint(0, 0xFFFFFF)
+
         return self
 
     @override
@@ -32,3 +38,7 @@ class AirplaneCommand(BaseCommand):
             "color": self.user_color,
             "name": self.user_name,
         }
+
+    @override
+    async def execute(self) -> None:
+        pass
