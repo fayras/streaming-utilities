@@ -1,16 +1,12 @@
 import os
-import shlex
 import importlib
 import inspect
 
-from typing import Type, Union
-
-import twitchAPI.chat
-
+from typing import Type
 from commands.base_command import BaseCommand
 
 
-def get_classes_dict() -> dict[str, Type[BaseCommand]]:
+def get_all_commands() -> dict[str, Type[BaseCommand]]:
     # Get the directory of the current module
     current_dir = os.path.dirname(__file__)
 
@@ -54,43 +50,3 @@ def get_classes_dict() -> dict[str, Type[BaseCommand]]:
             print(f"Could not import module {module_name}")
 
     return classes_dict
-
-
-def parse(chat_message: twitchAPI.chat.ChatMessage) \
-        -> Union[BaseCommand, False, None]:
-    chat_str = chat_message.text
-    chat_user = chat_message.user
-    if not chat_str.startswith("!"):
-        return None
-
-    classes = get_classes_dict()
-    chat_str_without_exclamation_mark = chat_str[1:]
-    tokens = shlex.split(chat_str_without_exclamation_mark)
-    if not tokens[0] in classes:
-        return None
-
-    command = classes[tokens[0]]().parse(tokens[0], tokens[1:], chat_user)
-    # TODO: Ggf. Fehler werfen, wenn nicht geparsed werden kann und Nachricht
-    #       im Twitch Chat schreiben, mit einer "man page"
-    if command is None:
-        return None
-
-    if command.check_cooldown(chat_user):
-        os.system(
-            f'notify-send "Command noch auf Cooldown" "@{chat_user.name} {chat_str}"'
-        )
-        return False
-
-    return command
-
-
-def parse_from_json(json: dict) -> BaseCommand | None:
-    if "command" in json:
-        classes = get_classes_dict()
-        command = classes.get(json.get("command"))
-
-        if command:
-            command = command()
-            command.set_params_from_json(json.get("params") or {})
-
-        return command
