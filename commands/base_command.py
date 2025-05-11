@@ -46,15 +46,19 @@ class BaseCommand(ABC):
     def get_params(self) -> dict[str, Any]:
         pass
 
-    def run(self):
+    async def run(self) -> bool:
+        can_execute = True
         for middleware in self.middleware:
-            if not middleware.can_execute(self):
-                return
+            if not await middleware.can_execute(self):
+                can_execute = False
 
-        self.execute()
+        if can_execute:
+            await self.execute()
 
-        for middleware in self.middleware:
-            middleware.was_executed(self)
+            for middleware in self.middleware:
+                await middleware.was_executed(self)
+
+        return can_execute
 
     def to_dict(self) -> dict:
         return {

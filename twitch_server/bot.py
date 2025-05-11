@@ -52,9 +52,10 @@ class Bot:
         print(f'{msg.user.display_name}: {msg.text}')
         command = self.parse(msg)
         if command:
-            insert_command_in_db(command, msg.user)
-            self.websocket.broadcast(command.to_dict())
-            await command.run()
+            has_run = await command.run()
+            if has_run:
+                insert_command_in_db(command, msg.user)
+                self.websocket.broadcast(command.to_dict())
 
         elif command is None:
             self.websocket.broadcast({

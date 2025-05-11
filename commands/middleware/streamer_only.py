@@ -15,9 +15,9 @@ class StreamerOnly(BaseCommandMiddleware):
         """
         self.execute_blocked_handler = execute_blocked_handler
 
-    def can_execute(self, command: BaseCommand) -> bool:
+    async def can_execute(self, command: BaseCommand) -> bool:
         msg = command.chat_message
         return msg.room.name == msg.user.name
 
-    def was_executed(self, command: BaseCommand):
+    async def was_executed(self, command: BaseCommand):
         pass

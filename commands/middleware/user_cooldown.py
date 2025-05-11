@@ -23,7 +23,7 @@ class UserCooldown(BaseCommandMiddleware):
         self.execute_blocked_handler = execute_blocked_handler
         self.cooldown = cooldown_seconds
 
-    def can_execute(self, command: BaseCommand) -> bool:
+    async def can_execute(self, command: BaseCommand) -> bool:
         if self._last_executed.get(command.name) is None:
             return True
 
@@ -42,7 +42,7 @@ class UserCooldown(BaseCommandMiddleware):
 
         return since >= self.cooldown
 
-    def was_executed(self, command: BaseCommand):
+    async def was_executed(self, command: BaseCommand):
         room_name = command.chat_message.room.name
         user_name = command.chat_message.user.name
         now = datetime.now()
