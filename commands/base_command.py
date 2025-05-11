@@ -32,7 +32,7 @@ class BaseCommand(ABC):
             chat_message: ChatMessage
     ):
         self.chat_message = chat_message
-        self.parse(command_string, params)
+        # self.parse(command_string, params)
 
     @abstractmethod
     def parse(self, command: str, params: list[str]) -> Self | None:

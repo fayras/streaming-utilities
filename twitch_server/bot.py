@@ -32,6 +32,7 @@ class Bot:
         command = self.all_commands[tokens[0]](
             tokens[0], tokens[1:], chat_message
         )
+        command.parse(tokens[0], tokens[1:])
         # TODO: Ggf. Fehler werfen, wenn nicht geparsed werden kann und Nachricht
         #       im Twitch Chat schreiben, mit einer "man page"
         if command is None:
