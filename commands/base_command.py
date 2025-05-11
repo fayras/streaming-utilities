@@ -51,6 +51,8 @@ class BaseCommand(ABC):
         for middleware in self.middleware:
             if not await middleware.can_execute(self):
                 can_execute = False
+                if middleware.execute_blocked_handler is not None:
+                    await middleware.execute_blocked_handler(self)
 
         if can_execute:
             await self.execute()

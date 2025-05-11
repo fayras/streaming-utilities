@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import Awaitable, Optional, Callable, Dict
 
@@ -12,16 +13,20 @@ class GlobalCooldown(BaseCommandMiddleware):
     # command -> datetime
     _last_executed: Dict[str, datetime] = {}
 
-    def __init__(self,
-                 cooldown_seconds: int,
-                 execute_blocked_handler: Optional[
-                     Callable[[BaseCommand], Awaitable[None]]] = None):
+    def __init__(self, cooldown_seconds: int):
         """
         :param cooldown_seconds: time in seconds a command should not be used again
-        :param execute_blocked_handler: optional specific handler for when the execution is blocked
         """
-        self.execute_blocked_handler = execute_blocked_handler
+        self.execute_blocked_handler = self.on_blocked
         self.cooldown = cooldown_seconds
+
+    @staticmethod
+    async def on_blocked(command: 'BaseCommand') -> None:
+        username = command.chat_message.user.display_name
+        chat_str = command.chat_message.text
+        os.system(
+            f'notify-send "Command {command.name} noch auf Cooldown" "@{username} {chat_str}"'
+        )
 
     async def can_execute(self, command: BaseCommand) -> bool:
         if self._last_executed.get(command.name) is None:
