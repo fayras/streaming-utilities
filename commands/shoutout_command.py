@@ -1,15 +1,15 @@
 from typing import Self, Any, override
 
-from twitchAPI.chat import ChatMessage, ChatUser
-from twitchAPI.helper import first
+from twitchAPI.chat import ChatMessage
 from commands.base_command import BaseCommand
+from commands.middleware.global_cooldown import GlobalCooldown
 from commands.middleware.streamer_only import StreamerOnly
 
 
 class ShoutoutCommand(BaseCommand):
     name = "shoutout"
     aliases = ["so"]
-    middleware = [StreamerOnly()]
+    middleware = [StreamerOnly(), GlobalCooldown(120)]
 
     def __init__(
             self,
@@ -22,10 +22,18 @@ class ShoutoutCommand(BaseCommand):
 
     @override
     async def execute(self) -> None:
-        req = self.chat_message.chat.twitch.get_users(
-            logins=[self.twitch_username])
-        user = await first(req)
-        print(user)
+        tw = self.chat_message.chat.twitch
+        req = tw.get_users(
+            logins=[self.chat_message.user.name, self.twitch_username])
+        from_user = await anext(req)
+        to_user = await anext(req)
+
+        channel_url = f"https://twitch.tv/{to_user.login}"
+        await self.chat_message.chat.send_message(
+            self.chat_message.room,
+            f"Dies ist eine sehr coole Person, schaut mal hier vorbei: {channel_url} !"
+        )
+        await tw.send_a_shoutout(from_user.id, to_user.id, from_user.id)
 
     @override
     def parse(self, _, params: list[str]) -> Self | None:
