@@ -9,7 +9,16 @@ from enum import Enum
 from twitchAPI.chat import ChatMessage, ChatUser
 from commands.base_command import BaseCommand
 from commands.middleware.global_cooldown import GlobalCooldown
+from commands.middleware.streamer_only import StreamerOnly
 from db import insert_votm_challenge, get_current_votm_challenge
+
+
+class VotmMiddleware(StreamerOnly):
+    async def can_execute(self, command: 'VotmCommand') -> bool:
+        if command.action is VotmCommand.Action.CREATE:
+            return await super().can_execute(command)
+
+        return True
 
 
 class VotmCommand(BaseCommand):
@@ -20,7 +29,7 @@ class VotmCommand(BaseCommand):
 
     name = "viewer_of_the_month"
     aliases = ["votm"]
-    middleware = [GlobalCooldown(10)]
+    middleware = [GlobalCooldown(10), VotmMiddleware()]
     script = None
 
     def __init__(
@@ -116,8 +125,7 @@ class VotmCommand(BaseCommand):
 
         args = self.parser.parse_args(params)
 
-        user = self.chat_message.user
-        if user.name == "thefayras" and args.action == "create":
+        if args.action == "create":
             self.action = VotmCommand.Action.CREATE
             self.description = args.description
             self.month = args.month if args.month else ""
