@@ -66,7 +66,7 @@ class VotmCommand(BaseCommand):
         self.challenge = None
 
         if VotmCommand.script is None:
-            VotmCommand.load_script()
+            VotmCommand.script = VotmCommand.load_script()
 
     @staticmethod
     def get_month(month_delta=0):
@@ -74,8 +74,8 @@ class VotmCommand(BaseCommand):
         return f"{date.year}-{date.month:02}"
 
     @staticmethod
-    def load_script():
-        current_month = VotmCommand.get_month()
+    def load_script(month_delta=0):
+        current_month = VotmCommand.get_month(month_delta)
         script_path = f"votm_scripts/{current_month}.py"
         full_path = os.path.join(
             os.path.dirname(os.path.abspath(__file__)),
@@ -85,7 +85,9 @@ class VotmCommand(BaseCommand):
 
         if os.path.exists(full_path):
             with open(full_path, mode="r") as script:
-                VotmCommand.script = script.read()
+                return script.read()
+
+        return ""
 
     @override
     async def execute(self) -> None:
@@ -132,9 +134,9 @@ class VotmCommand(BaseCommand):
             )
 
         if self.action == VotmCommand.Action.WINNER:
-            VotmCommand.load_script()
+            script = VotmCommand.load_script(-1)
             script_locals = {}
-            exec(VotmCommand.script, None, script_locals)
+            exec(script, None, script_locals)
             _, ids = script_locals["return_value"]
             if len(ids) > 0:
                 user_id = ids[0]
