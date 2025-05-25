@@ -1,6 +1,7 @@
 import datetime
 import json
 import os
+import random
 import re
 
 import argparse
@@ -161,8 +162,8 @@ def insert_votm_challenge(month: str, description: str, script_path: str):
 
     query(
         """
-            INSERT INTO viewer_of_the_month_challenges (month, description, script_path)
-            VALUES(?, ?, ?) 
+        INSERT INTO viewer_of_the_month_challenges (month, description, script_path)
+        VALUES (?, ?, ?)
         """,
         (month, description, script_path)
     )
@@ -187,6 +188,19 @@ def insert_command_in_db(command: BaseCommand, user: twitchAPI.chat.ChatUser):
     query(
         "INSERT INTO executed_commands (command, parameters, user_id, user) VALUES (?, ?, ?, ?)",
         (command.name, json.dumps(command_params), user_id, user.name)
+    )
+
+
+def insert_votm_winner(month, user_id, profile_img):
+    frame_rotation = random.randint(-3, 3)
+    challenge_id = query(
+        "SELECT id FROM viewer_of_the_month_challenges WHERE month = ?",
+        (month,)
+    )[0][0]
+
+    query(
+        "INSERT INTO main.viewer_of_the_month_winners (challenge_id, user_id, frame_rotation, profile_image_url) VALUES(?, ?, ?, ?)",
+        (challenge_id, user_id, frame_rotation, profile_img)
     )
 
 

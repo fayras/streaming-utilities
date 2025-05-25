@@ -6,16 +6,20 @@ import argparse
 from datetime import datetime
 from enum import Enum
 
+from dateutil.relativedelta import relativedelta
 from twitchAPI.chat import ChatMessage, ChatUser
+from twitchAPI.helper import first
 from commands.base_command import BaseCommand
 from commands.middleware.global_cooldown import GlobalCooldown
 from commands.middleware.streamer_only import StreamerOnly
-from db import insert_votm_challenge, get_current_votm_challenge
+from db import insert_votm_challenge, get_current_votm_challenge, \
+    insert_votm_winner
 
 
 class VotmMiddleware(StreamerOnly):
     async def can_execute(self, command: 'VotmCommand') -> bool:
-        if command.action is VotmCommand.Action.CREATE:
+        if (command.action is VotmCommand.Action.CREATE
+                or command.action is VotmCommand.Action.WINNER):
             return await super().can_execute(command)
 
         return True
@@ -26,6 +30,7 @@ class VotmCommand(BaseCommand):
         CREATE = 1
         STATUS = 2
         CHALLENGE = 3
+        WINNER = 4
 
     name = "viewer_of_the_month"
     aliases = ["votm"]
@@ -53,6 +58,7 @@ class VotmCommand(BaseCommand):
                                               help="Zeige den Status der aktuellen Challenge an.")
         challenge_parse = subparsers.add_parser("challenge",
                                                 help="Zeige die aktuelle Challenge an.")
+        winner_parse = subparsers.add_parser("winner", help="")
 
         self.action: VotmCommand.Action | None = None
         self.description = None
@@ -60,18 +66,26 @@ class VotmCommand(BaseCommand):
         self.challenge = None
 
         if VotmCommand.script is None:
-            now = datetime.now()
-            current_month = f"{now.year}-{now.month:02}"
-            script_path = f"votm_scripts/{current_month}.py"
-            full_path = os.path.join(
-                os.path.dirname(os.path.abspath(__file__)),
-                "..",
-                script_path
-            )
+            VotmCommand.load_script()
 
-            if os.path.exists(full_path):
-                with open(full_path, mode="r") as script:
-                    VotmCommand.script = script.read()
+    @staticmethod
+    def get_month(month_delta=0):
+        date = datetime.now() + relativedelta(months=month_delta)
+        return f"{date.year}-{date.month:02}"
+
+    @staticmethod
+    def load_script():
+        current_month = VotmCommand.get_month()
+        script_path = f"votm_scripts/{current_month}.py"
+        full_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..",
+            script_path
+        )
+
+        if os.path.exists(full_path):
+            with open(full_path, mode="r") as script:
+                VotmCommand.script = script.read()
 
     @override
     async def execute(self) -> None:
@@ -112,10 +126,23 @@ class VotmCommand(BaseCommand):
         if self.action == VotmCommand.Action.STATUS:
             script_locals = {}
             exec(VotmCommand.script, None, script_locals)
-            return_value = script_locals["return_value"]
+            chat_message, _ = script_locals["return_value"]
             await self.chat_message.reply(
-                f"Aktueller Stand: {return_value}"
+                f"Aktueller Stand: {chat_message}"
             )
+
+        if self.action == VotmCommand.Action.WINNER:
+            VotmCommand.load_script()
+            script_locals = {}
+            exec(VotmCommand.script, None, script_locals)
+            _, ids = script_locals["return_value"]
+            if len(ids) > 0:
+                user_id = ids[0]
+                api = self.chat_message.chat.twitch
+                user = await first(api.get_users(logins=[user_id]))
+                profile_img = user.profile_image_url
+                month = VotmCommand.get_month(-1)
+                insert_votm_winner(month, user_id, profile_img)
 
     @override
     def parse(self, _, params: list[str]) -> Self | None:
@@ -135,6 +162,9 @@ class VotmCommand(BaseCommand):
 
         if args.action == "challenge":
             self.action = VotmCommand.Action.CHALLENGE
+
+        if args.action == "winner":
+            self.action = VotmCommand.Action.WINNER
 
         return self
 
