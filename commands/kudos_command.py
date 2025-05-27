@@ -35,4 +35,6 @@ class KudosCommand(BaseCommand):
 
     @override
     def get_params(self) -> dict[str, Any]:
-        pass
+        return {
+            "recipient": self.twitch_username,
+        }
