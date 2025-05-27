@@ -28,7 +28,7 @@ class UserCooldown(BaseCommandMiddleware):
             username)
 
         date = last_executed + timedelta(seconds=self.cooldown)
-        message = (f"Command {command.name} noch auf Cooldown. "
+        message = (f"Command \"{command.name}\" noch auf Cooldown. "
                    f"Du kannst ihn ab {date.strftime("%H:%M:%S")} wieder benutzen.")
         api = command.chat_message.chat.twitch
         if room_name == username:

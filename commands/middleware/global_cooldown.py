@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Awaitable, Optional, Callable, Dict
 
 from twitchAPI.chat.middleware import BaseCommandMiddleware
@@ -20,13 +20,13 @@ class GlobalCooldown(BaseCommandMiddleware):
         self.execute_blocked_handler = self.on_blocked
         self.cooldown = cooldown_seconds
 
-    @staticmethod
-    async def on_blocked(command: 'BaseCommand') -> None:
-        username = command.chat_message.user.display_name
-        chat_str = command.chat_message.text
-        os.system(
-            f'notify-send "Command {command.name} noch auf Cooldown" "@{username} {chat_str}"'
-        )
+    async def on_blocked(self, command: 'BaseCommand') -> None:
+        last_executed = self._last_executed.get(command.name)
+        date = last_executed + timedelta(seconds=self.cooldown)
+        message = (f"Command \"{command.name}\" noch auf Cooldown. "
+                   f"Ihr könnt ihn ab {date.strftime("%H:%M:%S")} wieder benutzen.")
+
+        await command.chat_message.reply(message)
 
     async def can_execute(self, command: BaseCommand) -> bool:
         if self._last_executed.get(command.name) is None:
