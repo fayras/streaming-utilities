@@ -16,7 +16,8 @@ class Config:
         self.twitch_target_channel = env_value["TWITCH_CHANNEL"]
         self.twitch_redirect_uri = env_value["TWITCH_REDIRECT_URI"]
         self.twitch_user_scopes = [AuthScope.CHAT_READ, AuthScope.CHAT_EDIT,
-                                   AuthScope.MODERATOR_MANAGE_SHOUTOUTS]
+                                   AuthScope.MODERATOR_MANAGE_SHOUTOUTS,
+                                   AuthScope.USER_MANAGE_WHISPERS]
 
         self.webserver_port = 8081
         self.websocket_port = 8080
