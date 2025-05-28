@@ -8,7 +8,7 @@ from commands.middleware.user_cooldown import UserCooldown
 class CoffeeCommand(BaseCommand):
     name = "coffee"
     aliases = ["tea", "covfefe"]
-    middleware = [UserCooldown(30)]
+    middleware = [UserCooldown(1 * 60)]
 
     def __init__(
             self,
