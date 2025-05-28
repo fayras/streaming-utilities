@@ -12,7 +12,8 @@ class DiscordCommand(BaseCommand):
 
     @override
     async def execute(self) -> None:
-        await self.chat_message.reply(config.discord_invite_link)
+        message = f"Komm in die Gruppe! {config.discord_invite_link}"
+        await self.chat_message.reply(message)
 
     @override
     def parse(self, _, params: list[str]) -> Self | None:
