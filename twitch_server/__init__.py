@@ -8,7 +8,6 @@ from config import config
 from db import is_current_version
 
 import twitch_server.webserver
-import twitch_server.websocket
 import twitch_server.bot
 
 
@@ -25,11 +24,10 @@ async def get_twitch_api():
     return twitch
 
 
-async def run_tasks(twitch, websocket_app, webserver_app):
+async def run_tasks(twitch, webserver_app, websocket_manager):
     await asyncio.gather(
-        websocket.run(websocket_app),
         webserver.run(webserver_app),
-        bot.run(twitch, websocket_app)
+        bot.run(twitch, websocket_manager)
     )
 
 
@@ -40,10 +38,9 @@ def start_twitch_server():
 
     loop = asyncio.get_event_loop()
     twitch_app = loop.run_until_complete(get_twitch_api())
-    websocket_app = websocket.setup()
-    webserver_app = webserver.setup(twitch_app)
+    webserver_app, websocket_manager = webserver.setup(twitch_app)
 
     try:
-        asyncio.run(run_tasks(twitch_app, websocket_app, webserver_app))
+        asyncio.run(run_tasks(twitch_app, webserver_app, websocket_manager))
     except KeyboardInterrupt:
         pass

@@ -9,13 +9,14 @@ from commands import BaseCommand, get_all_commands
 from config import config
 
 from db import insert_command_in_db
+from twitch_server.webserver import WebsocketManager
 
 
 class Bot:
-    def __init__(self, twitch_api, websocket):
+    def __init__(self, twitch_api, websocket_manager: WebsocketManager):
         self.chat = None
         self.twitch_api = twitch_api
-        self.websocket = websocket
+        self.websocket = websocket_manager
         self.all_commands = get_all_commands()
 
     def parse(self, chat_message: ChatMessage) -> Union[
@@ -38,15 +39,6 @@ class Bot:
         if command is None:
             return None
 
-        # TODO: Anstatt "check_cooldown" sollte die jeweilige Middleware eine
-        #       Nachricht ausgeben.
-
-        # if command.check_cooldown(chat_user):
-        #     os.system(
-        #         f'notify-send "Command noch auf Cooldown" "@{chat_user.name} {chat_str}"'
-        #     )
-        #     return False
-
         return command
 
     async def handle_message(self, msg: ChatMessage):
@@ -56,10 +48,10 @@ class Bot:
             has_run = await command.run()
             if has_run:
                 insert_command_in_db(command, msg.user)
-                self.websocket.broadcast(command.to_dict())
+                await self.websocket.broadcast(command.to_dict())
 
         elif command is None:
-            self.websocket.broadcast({
+            await self.websocket.broadcast({
                 "command": "chat_message",
                 "message": msg.text,
                 "username": msg.user.display_name,
@@ -86,6 +78,7 @@ class Bot:
             await self.twitch_api.close()
 
 
-async def run(twitch: Twitch, runner):
-    bot = Bot(twitch, runner)
+async def run(twitch: Twitch, websocket_manager: WebsocketManager):
+    bot = Bot(twitch, websocket_manager)
     await bot.run()
+    print("Bot end")

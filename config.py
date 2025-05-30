@@ -19,8 +19,7 @@ class Config:
                                    AuthScope.MODERATOR_MANAGE_SHOUTOUTS,
                                    AuthScope.USER_MANAGE_WHISPERS]
 
-        self.webserver_port = 8081
-        self.websocket_port = 8080
+        self.webserver_port = 8080
 
         self.discord_invite_link = env_value["DISCORD_INVITE_LINK"]
 
