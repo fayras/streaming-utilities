@@ -2,14 +2,15 @@ import asyncio
 import json
 import os
 import threading
+from functools import partial
 
-import aiohttp
 import rich
 import time
 
 from rich.live import Live
 from rich.text import Text
 
+from common.WebsocketClient import WebSocketClient
 from now_playing.current_spotify_song import CurrentSpotifySong
 from now_playing.scrollable_text import ScrollableText
 from now_playing.spotify_api import SpotifyAPI
@@ -17,7 +18,7 @@ from now_playing.spotify_token import SpotifyToken
 from now_playing.progress_bar import ProgressBar
 
 
-def parse_and_run_command(data: str, api: SpotifyAPI):
+async def parse_and_run_command(api: SpotifyAPI, data: str):
     try:
         parsed_json = json.loads(data)
         command = parsed_json.get("command")
@@ -35,18 +36,9 @@ def parse_and_run_command(data: str, api: SpotifyAPI):
         print("Not valid JSON")
 
 
-async def connect_to_websocket(api: SpotifyAPI):
-    async with aiohttp.ClientSession() as session:
-        async with session.ws_connect('http://localhost:8080/ws') as ws:
-            async for msg in ws:
-                if msg.type == aiohttp.WSMsgType.TEXT:
-                    parse_and_run_command(msg.data, api)
-
-                    # TODO: Bei fehlgeschlagenem Request soll der Bot mit
-                    # einer Nachricht antworten, dass die ID nicht stimmt
-                    # und ggf. bei falscher Benutzung (zB "!request ")
-                elif msg.type == aiohttp.WSMsgType.ERROR:
-                    break
+async def connect_to_websocket(ws_client: WebSocketClient):
+    await ws_client.start()
+    print("websocket client end")
 
 
 def show_now_playing():
@@ -60,14 +52,13 @@ def show_now_playing():
     artist = ScrollableText("Artist")
     progress = ProgressBar()
 
-    # This function will run in the thread
+    websocket_handler = partial(parse_and_run_command, api)
+    websocket_client = WebSocketClient("now_playing", websocket_handler)
+
     def run_in_thread():
         loop = asyncio.new_event_loop()
-        # Set the loop as the current event loop for this thread
         asyncio.set_event_loop(loop)
-        # Run the async function until it completes
-        loop.run_until_complete(connect_to_websocket(api))
-        # Clean up
+        loop.run_until_complete(connect_to_websocket(websocket_client))
         loop.close()
 
     t = threading.Thread(target=run_in_thread)
@@ -77,20 +68,28 @@ def show_now_playing():
     with Live(Text(""), auto_refresh=False, console=console) as live:
         live.console.clear()
 
-        rich.print(
-            "[green]❯[/green] [blue]./stream[/blue] [cyan]--now-playing[/cyan]")
+        old_websocket_connected = None
+        cli_command = "[green]❯[/green] [blue]./stream[/blue] [cyan]--now-playing[/cyan]"
         while True:
-            width = live.console.size.width
+            websocket_connected = websocket_client.is_connected()
+            has_just_connected = websocket_connected and not old_websocket_connected
+            old_websocket_connected = websocket_client.is_connected()
+            cli_status = "" if websocket_connected else "[red](Disconnected)[/red]"
+
+            if has_just_connected:
+                live.console.clear()
 
             current_song.update()
             if not current_song.is_track():
                 live.update("Currently playing type is not supported.")
             else:
+                width = live.console.size.width
                 title.update(current_song.name, width).scroll()
                 artist.update(current_song.artists, width).scroll()
                 progress.update(live.console, current_song.progress,
                                 current_song.duration)
-                rich_text = Text.from_markup(f"{title}{artist}{progress}")
+                rich_text = Text.from_markup(
+                    f"{cli_status}{cli_command}\n{title}{artist}{progress}")
 
                 live.update(rich_text)
 
