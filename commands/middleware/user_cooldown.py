@@ -24,23 +24,21 @@ class UserCooldown(BaseCommandMiddleware):
         username = command.chat_message.user.name
         room_name = command.chat_message.room.name
 
-        last_executed = self._last_executed[command.name][room_name].get(
-            username)
+        last_executed = (self._last_executed[command.name][room_name]
+                         .get(username))
 
         date = last_executed + timedelta(seconds=self.cooldown)
+        api = command.chat_message.chat.twitch
         message = (f"Command \"{command.name}\" noch auf Cooldown. "
                    f"Du kannst ihn ab {date.strftime("%H:%M:%S")} wieder benutzen.")
-        api = command.chat_message.chat.twitch
+
         if room_name == username:
-            req = api.get_users(logins=[username])
-            from_user = await anext(req)
-            to_user = from_user
+            print(message)
         else:
             req = api.get_users(logins=[room_name, username])
             from_user = await anext(req)
             to_user = await anext(req)
-
-        await api.send_whisper(from_user.id, to_user.id, message)
+            await api.send_whisper(from_user.id, to_user.id, message)
 
     async def can_execute(self, command: BaseCommand) -> bool:
         if self._last_executed.get(command.name) is None:
