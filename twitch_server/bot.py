@@ -8,7 +8,7 @@ from twitchAPI.chat import Chat, EventData, ChatMessage
 from commands import BaseCommand, get_all_commands
 from config import config
 
-from db import insert_command_in_db
+from db import insert_command_in_db, get_user_id
 from twitch_server.webserver import WebsocketManager
 
 
@@ -51,6 +51,7 @@ class Bot:
                 await self.websocket.broadcast(command.to_dict())
 
         elif command is None:
+            get_user_id(msg.user.name, msg.user.display_name)
             await self.websocket.broadcast({
                 "command": "chat_message",
                 "message": msg.text,

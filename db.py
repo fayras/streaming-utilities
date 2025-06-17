@@ -169,6 +169,16 @@ def insert_votm_challenge(month: str, description: str, script_path: str):
     )
 
 
+def get_user_by_username(username: str):
+    users = query(
+        "SELECT id, username, display_name FROM users WHERE username = ?",
+        (username,))
+    if len(users) == 0:
+        return None
+
+    return users[0]
+
+
 def get_user_id(username: str, display_name: str):
     user_ids = query("SELECT id FROM users WHERE username = ?", (username,))
 
@@ -179,6 +189,11 @@ def get_user_id(username: str, display_name: str):
           (username, display_name))
     user_ids = query("SELECT id FROM users WHERE username = ?", (username,))
     return user_ids[0][0]
+
+
+def insert_user(username: str, display_name: str):
+    query("INSERT INTO users (username, display_name) VALUES(?, ?)",
+          (username, display_name))
 
 
 def insert_command_in_db(command: BaseCommand, user: twitchAPI.chat.ChatUser):
